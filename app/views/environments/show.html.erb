@@ -1,0 +1,54 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Endpoint:</strong>
+  <%= @environment.endpoint %>
+</p>
+<%= link_to 'Novo signatário', new_signer_path(environment_id: params[:id]) %>
+<%= link_to 'Edit', edit_environment_path(@environment) %> |
+<%= link_to 'Back', environments_path %>
+
+</br>
+</br>
+
+<p>
+  <strong>Novo Lote</strong>
+</p>
+
+<%= form_tag([:generate, :batches, environment_id: params[:id]]) do %>
+  <%= label_tag 'Tamanho do lote' %>
+  <%= number_field_tag 'documents_amount', nil, in: 1...10000 %>
+
+  <%= label_tag 'Signatário' %>
+  <%= select("signer", "id", @environment.signers.all.collect {|p| [ p.email, p.id ] }, { include_blank: true }) %>
+
+  <%= label_tag 'Access Token' %>
+  <%= text_field_tag 'access_token' %>
+
+  <div><%= submit_tag 'Gerar Lote' %></div>
+<% end %>
+
+<p>
+  <strong>Lotes Gerados</strong>
+</p>
+
+<% if @environment.batches.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Cháve de assinatura</th>
+        <th>Quantidade de documentos</th>
+        <th>Link para assinar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @environment.batches.each do |batch| %>
+        <tr>
+          <td><%= batch.key %></td>
+          <td><%= batch.documents.size %></td>
+          <td><%= link_to 'Assinar', new_signature_path(key: batch.key) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

@@ -1,0 +1,10 @@
+<%= form_for @signer do |f| %>
+  <%= hidden_field_tag(:environment_id, params[:environment_id]) %>
+
+  <%= f.label :email %>
+  <%= f.email_field :email %>
+
+  <%= label_tag 'Access token' %>
+  <%= text_field_tag 'access_token' %>
+  <%= f.submit %>
+<% end %>
