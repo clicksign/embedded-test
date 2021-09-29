@@ -2,18 +2,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Simple widget usage</title>
+    <title>Simple widget embedded usage</title>
     <script src="./embedded.js"></script>
   </head>
 
   <body>
     <select id="request_enviroment">
       <option value="http://127.0.0.1:3000">Local</option>
-      <option value="https://1.clicksign.dev">Namespace 1</option>
-      <option value="https://2.clicksign.dev">Namespace 2</option>
-      <option value="https://3.clicksign.dev">Namespace 3</option>
-      <option value="https://4.clicksign.dev">Namespace 4</option>
-      <option value="https://5.clicksign.dev">Namespace 5</option>
       <option value="https://sandbox.clicksign.com">Sandbox</option>
       <option value="https://app.clicksign.com">Produção</option>
     </select>
@@ -22,17 +17,23 @@
     <div id="container" style="height: 600px;"></div>
 
     <script type="text/javascript">
-      var widget,
+      let widget,
         input = document.getElementById('request_signature_key'),
         environment = document.getElementById('request_enviroment');
 
+      const ENVIRONMENTS_COUNT = 10;
+      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+        let option = document.createElement('option');
+        option.text = `Staging ${index}`;
+        option.value = `https://${index}.clicksign.dev`;
+        environment.appendChild(option);
+      }
+
       function run() {
-        var request_signature_key = input.value;
+        let request_signature_key = input.value;
 
         try {
-          if (widget) {
-            widget.unmount();
-          }
+          if (widget) widget.unmount();
           widget = new Clicksign(request_signature_key);
           widget.endpoint = environment.value;
           widget.origin = window.location.href;
