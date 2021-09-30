@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple widget embedded usage</title>
+    <script src="./embedded.js"></script>
+  </head>
+
+  <body>
+    <select id="request_enviroment">
+      <option value="http://127.0.0.1:3000">Local</option>
+      <option value="https://sandbox.clicksign.com">Sandbox</option>
+      <option value="https://app.clicksign.com">Produção</option>
+    </select>
+    <input id="request_signature_key" value="" />
+    <input type="button" value="Load" onclick="run()" />
+    <div id="container" style="height: 600px;"></div>
+
+    <script type="text/javascript">
+      let widget,
+        input = document.getElementById('request_signature_key'),
+        environment = document.getElementById('request_enviroment');
+
+      const ENVIRONMENTS_COUNT = 10;
+      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+        let option = document.createElement('option');
+        option.text = `Staging ${index}`;
+        option.value = `https://${index}.clicksign.dev`;
+        environment.appendChild(option);
+      }
+
+      function run() {
+        let request_signature_key = input.value;
+
+        try {
+          if (widget) widget.unmount();
+          widget = new Clicksign(request_signature_key);
+          widget.endpoint = environment.value;
+          widget.origin = window.location.href;
+          widget.mount('container');
+        } catch (error) {
+          console.log('error:', error);
+        }
+        
+        console.log('widget:', widget);
+        widget.on('loaded', function(ev) {
+          console.log('loaded!', ev);
+          document.getElementById('container').style.display = 'block';
+        });
+        widget.on('summary', function(ev) {
+          console.log('summary!', ev);
+          document.getElementById('container').style.display = 'block';
+        });
+        widget.on('signed', function(ev) {
+          console.log('signed!');
+        });
+        widget.on('teste', function(ev) {
+          console.log('destroyed!');
+        });
+        widget.on('resized', function(height) {
+          console.log('resized!');
+          document.getElementById('container').style.height = height + 'px';
+        });
+      }
+    </script>
+  </body>
+</html>
