@@ -1,0 +1,88 @@
+body {
+  background: #FFF;
+  color: #1b2936;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 200;
+}
+
+body #main {
+  margin: 0 auto;
+  padding: 0 15px 0 15px;
+}
+
+h1 {
+  color: #393d41 !important;
+  font-weight: 400;
+}
+
+label {
+  display: inline-block;
+  font-weight: 500;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+input[type=text],
+input[type=date] {
+  background: transparent;
+  border: 1px solid #e5e5e5;
+  padding: 8px 12px;
+  border-radius: 3px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  color: #555;
+}
+
+input[type=text]:focus,
+input[type=date]:focus {
+  outline: none;
+}
+
+.cs-acceptance-text {
+  font-size: 12px;
+}
+
+.cs-acceptance-preview {
+  color: #1474F5;
+}
+
+.submitSignature {
+  background: #1673f6;
+  border: 1px solid rgba(25,34,46,0.2);
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  text-decoration: none;
+  transition: all 0.2s ease-out 0s;
+  outline: 0px !important;
+  cursor: pointer;
+  width: 100%;
+}
+
+.submitSignature:hover {
+  background: rgb(19, 100, 209);
+}
+
+.submitSignature:disabled {
+  background: #ebebeb;
+}
+
+.loader {
+  border: 16px solid #e5e5e5; /* Light grey */
+  border-top: 16px solid #1673f6; /* Blue */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 2s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
