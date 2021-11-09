@@ -104,9 +104,13 @@ button[disabled] {
 }
 
 /* MAIN */
-/* MAIN */
 .main {
   margin: 0 16px;
+
+}
+
+iframe {
+  border: none;
 }
 
 .container {
