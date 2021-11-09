@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM Seguros</title>
+  <link href="styles/style.css" rel="stylesheet"></link>
+  <script src="https://sandbox.clicksign.com/tokenlessWidget.js"></script>
+</head>
+
+<body>
+  <header class="settings" onclick="openSettings()">
+    <h2 class="title">⚙️ Configurações</h2>
+    <fieldset class="form">
+      <div class="field batch-key">
+        <label>Request Signature Key</label>
+        <input type="text" id="key" name="key" required="true" />
+      </div>
+      <div class="field enviroment">
+        <label>Environment</label>
+        <select id="request_enviroment">
+          <option value="sandbox" selected>Sandbox</option>
+          <option value="production">Produção</option>
+        </select>
+      </div>
+      <div class="action">
+        <button id="setButton" type="submit" class="button" onclick="setWidget()">
+          Carregar
+        </button>
+      </div>
+    </fieldset>
+  </header>
+
+  <main class="main">
+    <h2>🙋 Preencha seus dados</h2>
+    <form id="form" action="success.html" onsubmit="return false">
+      <filedset class="signer-info">
+        <div class="field">
+          <label>CPF</label><br>
+          <input type="text" id="cpf" name="cpf" />
+        </div>
+        <div class="field">
+          <label>Data de nascimento</label><br>
+          <input type="date" id="birthdate" name="birthdate" />
+        </div>
+      </filedset>
+
+      <div id="widget" class="container"></div>
+      <span class="error"></span>
+
+      <div class="action">
+        <button type="submit" class="button large" id="submitButton" disabled="disabled">
+          Clique para assinar
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script type="text/javascript">
+    function openSettings() {
+      document.getElementsByClassName('settings')[0].classList.remove('closed');
+    }
+    function closeSettings() {
+      document.getElementsByClassName('settings')[0].classList.add('closed');
+    }
+  </script>
+
+  <script type="text/javascript">
+    function setWidget(){
+      const submitButton = document.getElementById('submitButton')
+      const key = document.getElementById('key').value
+      const enviroment = document.getElementById('request_enviroment').value
+
+      const tw = new tokenlessWidget(key, enviroment)
+      tw.injectLoader('<div class="loader"><div></div><div></div><div></div><div></div></div>')
+      closeSettings()
+      tw.attach('click', 'submitButton', () => {
+        const data = {
+          "signature": {
+            "birthday": document.getElementById("birthdate"),
+            "documentation": document.getElementById("cpf")
+          }
+        }
+
+        tw.sign(data).then(() => {
+          submitButton.setAttribute("value", "Assinatura realizada com sucesso!");
+          submitButton.setAttribute("style", "background-color: green;");
+          console.log('Assinatura realizada com sucesso!')
+        }).catch((error) => {
+          submitButton.setAttribute("value", `Erro ao assinar o documento. Confira log`);
+          submitButton.setAttribute("style", "background-color: red;");
+          console.log(error.code, error.message)
+        })
+      })
+
+      tw.mount({
+        'containerId':'widget',
+        'textTemplate': 'banco_acme_1'
+      })
+      // document.getElementsByClassName('loader')[0].remove()
+      // document.getElementsByClassName('error')[0].innerText = error
+      submitButton.removeAttribute('disabled')
+    }
+  </script>
+</body>
+</html>

@@ -1,6 +1,13 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:600');
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400');
 
+/* VARS */
+:root {
+  --color-primary: #1474F5;
+  --color-primary-dark: #1474F5;
+}
+
+/* BASE */
 body {
   margin: 0;
   padding: 0;
@@ -71,10 +78,11 @@ button.large {
 
 
 button:hover {
-  background: #003db2;
+  background: var(--color-primary-dark);
 }
 
-button[disabled] {
+button[disabled],
+button[disabled]:hover {
   background: #ebebeb;
   color: #ccc;
   cursor: not-allowed;
@@ -103,19 +111,86 @@ button[disabled] {
   margin-bottom: 20px;
 }
 
-/* MAIN */
+.settings.closed {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  background: var(--color-primary-dark);
+  transform: translateX(-50%);
+  border-radius: 0 0 8px 8px;
+}
+
+.settings.closed:hover {
+  cursor: pointer;
+}
+
+.settings.closed .form {
+  display: none;
+}
+
+.settings.closed .title {
+  margin: 4px 8px 8px;
+  color: white;
+  font-size: 16px;
+}
+
 /* MAIN */
 .main {
   margin: 0 16px;
 }
 
-.container {
+.main .signer-info {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 16px;
+}
+
+.container {
+  margin-bottom: 16px;
   color: #999;
-  font-size: 18px;
-  background: #fafafa;
-  min-height: calc(100vh - 170px);
-  border-radius: 8px;
+}
+
+.cs-acceptance-text {
+  font-size: 12px;
+}
+
+.cs-acceptance-preview {
+  color: var(--color-primary);
+}
+
+/* LOADER */
+.loader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.loader div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid var(--color-primary);
+  border-radius: 50%;
+  animation: loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--color-primary) transparent transparent transparent;
+}
+.loader div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.loader div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.loader div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

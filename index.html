@@ -2,19 +2,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Simple widget embedded usage</title>
+    <title>Simple widget embedded - Clicksign</title>
     <script src="./embedded.js"></script>
+    <link href="./style.css" rel="stylesheet"></link>
   </head>
 
   <body>
-    <select id="request_enviroment">
-      <option value="http://127.0.0.1:3000">Local</option>
-      <option value="https://sandbox.clicksign.com">Sandbox</option>
-      <option value="https://app.clicksign.com">Produção</option>
-    </select>
-    <input id="request_signature_key" value="" />
-    <input type="button" value="Load" onclick="run()" />
-    <div id="container" style="height: 600px;"></div>
+    <header class="settings closed">
+      <h2>⚙️ Configurações</h2>
+      <fieldset class="form">
+        <div class="field batch-key">
+          <label>Request Signature Key</label>
+          <input type="text" id="request_signature_key" value="" />
+        </div>
+        <div class="field enviroment">
+          <label>Environment</label>
+          <select id="request_enviroment">
+            <option value="http://127.0.0.1:3000">Local</option>
+            <option value="https://sandbox.clicksign.com">Sandbox</option>
+            <option value="https://app.clicksign.com">Produção</option>
+          </select>
+        </div>
+        <div class="action">
+          <button id="setButton" type="submit" class="button" onclick="setWidget()">
+            Carregar
+          </button>
+        </div>
+      </fieldset>
+    </header>
+
+    <main class="main">
+      <div class="container" id="widget" style="height: 600px;"></div>
+    </main>
 
     <script type="text/javascript">
       let widget,
@@ -29,7 +48,7 @@
         environment.appendChild(option);
       }
 
-      function run() {
+      function setWidget() {
         let request_signature_key = input.value;
 
         try {
@@ -37,11 +56,11 @@
           widget = new Clicksign(request_signature_key);
           widget.endpoint = environment.value;
           widget.origin = window.location.href;
-          widget.mount('container');
+          widget.mount('widget');
         } catch (error) {
           console.log('error:', error);
         }
-        
+
         console.log('widget:', widget);
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
