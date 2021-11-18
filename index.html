@@ -64,11 +64,11 @@
         console.log('widget:', widget);
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
-          document.getElementById('container').style.display = 'block';
+          document.getElementById('widget').style.display = 'block';
         });
         widget.on('summary', function(ev) {
           console.log('summary!', ev);
-          document.getElementById('container').style.display = 'block';
+          document.getElementById('widget').style.display = 'block';
         });
         widget.on('signed', function(ev) {
           console.log('signed!');
@@ -78,7 +78,7 @@
         });
         widget.on('resized', function(height) {
           console.log('resized!');
-          document.getElementById('container').style.height = height + 'px';
+          document.getElementById('widget').style.height = height + 'px';
         });
       }
     </script>
