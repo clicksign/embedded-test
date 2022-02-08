@@ -4,12 +4,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Simple widget embedded - Clicksign</title>
     <script src="./embedded.js"></script>
-    <link href="./style.css" rel="stylesheet"></link>
+    <link href="./style.css" rel="stylesheet" />
   </head>
 
   <body>
     <header class="settings closed">
-      <h2>⚙️ Configurações</h2>
+      <div class="box">
+        <h2 class="title">⚙️ Configurações</h2>
+        <nav class="navigation">
+          <ul>
+            <li class="item"><a href="/tokenless/">Ir para assinatura sem token</a></li>          
+          </ul>
+        </nav> 
+      </div>       
       <fieldset class="form">
         <div class="field batch-key">
           <label>Request Signature Key</label>

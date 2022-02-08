@@ -93,6 +93,20 @@ button[disabled]:hover {
   margin: 0 16px;
 }
 
+.settings .box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings .title, .settings .navigation {
+  display: inline-block;
+}
+
+.navigation .item {
+  list-style: none;
+}
+
 .settings .form {
   position: sticky;
   padding: 8px 24px;

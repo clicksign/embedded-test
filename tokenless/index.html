@@ -4,13 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACM Seguros</title>
-  <link href="styles/style.css" rel="stylesheet"></link>
+  <link href="styles/style.css" rel="stylesheet" />
   <script src="https://sandbox.clicksign.com/tokenlessWidget.js"></script>
 </head>
 
 <body>
   <header class="settings" onclick="openSettings()">
-    <h2 class="title">⚙️ Configurações</h2>
+    <div class="box">
+      <h2 class="title">⚙️ Configurações</h2>
+      <nav class="navigation">
+        <ul>
+          <li class="item"><a href="../">Ir para widget embedded</a></li>          
+        </ul>
+      </nav> 
+    </div>       
     <fieldset class="form">
       <div class="field batch-key">
         <label>Request Signature Key</label>
