@@ -101,7 +101,7 @@
 
       tw.mount({
         'containerId':'widget',
-        'textTemplate': 'banco_acme_1'
+        'textTemplate': enviroment === 'sandbox' ? 'clicksign' : 'banco_acme_1'
       })
       submitButton.removeAttribute('disabled')
     }
