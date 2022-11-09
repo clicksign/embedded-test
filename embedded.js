@@ -1,13 +1,14 @@
-function Clicksign(key) {
+function Clicksign(key, is_not_legacy) {
   "use strict";
 
   var iframe, target,
       endpoint = 'https://app.clicksign.com',
       origin = window.location.protocol + '//' + window.location.host,
       listen = {};
-
+      
   var mount = function (id) {
-    var path = '/sign/' + key,
+    var BASE_PATH = is_not_legacy ? '/notarial/compat/requests/' : '/sign/';
+    var path = BASE_PATH + key,
         params = '?embedded=true&origin=' + this.origin,
         src = this.endpoint + path + params;
 
