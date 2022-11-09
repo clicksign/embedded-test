@@ -23,6 +23,10 @@
             <option value="https://app.clicksign.com">Produção</option>
           </select>
         </div>
+        <div class="field legacy">
+          <input id="request_legacy" type="checkbox" value="true">
+          <label for="request_legacy"> Is Batch? (Legacy) </label>
+        </div>
         <div class="action">
           <button id="setButton" type="submit" class="button" onclick="setWidget()">
             Carregar
@@ -38,6 +42,7 @@
     <script type="text/javascript">
       let widget,
         input = document.getElementById('request_signature_key'),
+        legacy_checkbox = document.getElementById('request_legacy'),
         environment = document.getElementById('request_enviroment');
 
       const ENVIRONMENTS_COUNT = 18;
@@ -49,11 +54,12 @@
       }
 
       function setWidget() {
-        let request_signature_key = input.value;
+        let request_signature_key = input.value,
+          is_not_legacy = !legacy_checkbox.checked;
 
         try {
           if (widget) widget.unmount();
-          widget = new Clicksign(request_signature_key);
+          widget = new Clicksign(request_signature_key, is_not_legacy);
           widget.endpoint = environment.value;
           widget.origin = window.location.href;
           widget.mount('widget');
