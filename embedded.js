@@ -5,6 +5,7 @@ function Clicksign(key, is_not_legacy) {
       endpoint = 'https://app.clicksign.com',
       origin = window.location.protocol + '//' + window.location.host,
       listen = {};
+
   var mount = function (id) {
     var BASE_PATH = is_not_legacy ? '/notarial/compat/requests/' : '/sign/';
     var path = BASE_PATH + key,
