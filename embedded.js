@@ -17,7 +17,7 @@ function Clicksign(key, is_not_legacy) {
     iframe = document.createElement('iframe');
     iframe.setAttribute('src', src);
     iframe.setAttribute('style', 'width: 100%; height: 100%;');
-    iframe.setAttribute('allow', 'camera');
+    iframe.setAttribute('allow', 'camera; geolocation');
 
     window.addEventListener('message', handle);
 
