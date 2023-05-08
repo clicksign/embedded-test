@@ -76,8 +76,8 @@
       tw.attach('click', 'submitButton', () => {
         const data = {
           "signature": {
-            "birthday": document.getElementById("birthdate"),
-            "documentation": document.getElementById("cpf")
+            "birthday": document.getElementById("birthdate").value,
+            "documentation": document.getElementById("cpf").value
           }
         }
 
