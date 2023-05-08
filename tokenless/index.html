@@ -36,6 +36,10 @@
     <form id="form" action="success.html" onsubmit="return false">
       <filedset class="signer-info">
         <div class="field">
+          <label>Nome</label><br>
+          <input type="text" id="name" name="name" />
+        </div>
+        <div class="field">
           <label>CPF</label><br>
           <input type="text" id="cpf" name="cpf" />
         </div>
@@ -76,6 +80,7 @@
       tw.attach('click', 'submitButton', () => {
         const data = {
           "signature": {
+            "name": document.getElementById("name").value,
             "birthday": document.getElementById("birthdate").value,
             "documentation": document.getElementById("cpf").value
           }
