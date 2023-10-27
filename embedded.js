@@ -17,7 +17,7 @@ function Clicksign(key, is_not_legacy) {
     iframe = document.createElement('iframe');
     iframe.setAttribute('src', src);
     iframe.setAttribute('style', 'width: 100%; height: 100%;');
-    iframe.setAttribute('allow', 'camera;geolocation;fullscreen;gyroscope;accelerometer');
+    iframe.setAttribute('allow', 'camera;geolocation;fullscreen;gyroscope;accelerometer;magnetometer');
 
     window.addEventListener('message', handle);
 
