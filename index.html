@@ -27,6 +27,10 @@
           <button id="setButton" type="submit" class="button" onclick="setWidget()">
             Carregar
           </button>
+
+          <button id="removeButton" class="button remove" type="submit" onclick="removeWidget()">
+            Remover
+          </button>
         </div>
       </fieldset>
     </header>
@@ -83,6 +87,12 @@
           console.log('resized!');
           document.getElementById('container').style.height = height + 'px';
         });
+      }
+
+      function removeWidget() {
+        if (widget) {
+          widget.unmount();
+        }
       }
     </script>
   </body>

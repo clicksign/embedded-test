@@ -64,11 +64,17 @@ button {
   cursor: pointer;
 }
 
+button.remove {
+  background: darkred;
+  &:hover {
+    background: #b43030;
+  }
+}
+
 button.large {
   padding: 12px 24px;
   font-size: 18px;
 }
-
 
 button:hover {
   background: #003db2;
