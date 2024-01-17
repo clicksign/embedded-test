@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Simple widget embedded - Clicksign</title>
     <script src="./embedded.js"></script>
-    <link href="./style.css" rel="stylesheet"></link>
+    <link href="./style.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -56,16 +56,19 @@
           widget = new Clicksign(request_signature_key);
           widget.endpoint = environment.value;
           widget.origin = window.location.href;
+
+          console.log(widget);
+
           widget.mount('widget');
         } catch (error) {
           console.log('error:', error);
         }
 
-        console.log('widget:', widget);
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
           document.getElementById('container').style.display = 'block';
         });
+
         widget.on('summary', function(ev) {
           console.log('summary!', ev);
           document.getElementById('container').style.display = 'block';
