@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple widget embedded - Clicksign</title>
+    <script src="./embedded.js"></script>
+    <link href="./style.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <header class="settings closed">
+      <h2>⚙️ Configurações</h2>
+      <fieldset class="form">
+        <div class="field batch-key">
+          <label>Request Signature Key</label>
+          <input type="text" id="request_signature_key" value="" />
+        </div>
+        <div class="field enviroment">
+          <label>Environment</label>
+          <select id="request_enviroment">
+            <option value="http://127.0.0.1:3000">Local</option>
+            <option value="https://sandbox.clicksign.com">Sandbox</option>
+            <option value="https://app.clicksign.com">Produção</option>
+          </select>
+        </div>
+        <div class="action">
+          <button id="setButton" type="submit" class="button" onclick="setWidget()">
+            Carregar
+          </button>
+
+          <button id="removeButton" class="button remove" type="submit" onclick="removeWidget()">
+            Remover
+          </button>
+        </div>
+      </fieldset>
+    </header>
+
+    <main class="main">
+      <div class="container" id="widget" style="height: 600px;"></div>
+    </main>
+
+    <script type="text/javascript">
+      let widget,
+        input = document.getElementById('request_signature_key'),
+        environment = document.getElementById('request_enviroment');
+
+      const ENVIRONMENTS_COUNT = 20;
+      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+        let option = document.createElement('option');
+        option.text = `Staging ${index}`;
+        option.value = `https://${index}.clicksign.dev`;
+        environment.appendChild(option);
+      }
+
+      function setWidget() {
+        let request_signature_key = input.value;
+
+        try {
+          if (widget) widget.unmount();
+          widget = new Clicksign(request_signature_key);
+          widget.endpoint = environment.value;
+          widget.origin = window.location.href;
+
+          widget.mount('widget');
+        } catch (error) {
+          console.log('error:', error);
+        }
+
+        widget.on('loaded', function(ev) {
+          console.log('loaded!', ev);
+          document.getElementById('widget').style.display = 'block';
+        });
+
+        widget.on('signed', function(ev) {
+          console.log('signed!');
+        });
+
+        widget.on('resized', function(height) {
+          console.log('resized!');
+          document.getElementById('widget').style.height = height + 'px';
+        });
+      }
+
+      function removeWidget() {
+        if (widget) {
+          widget.unmount();
+        }
+      }
+    </script>
+  </body>
+</html>
