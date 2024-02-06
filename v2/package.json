@@ -1,0 +1,15 @@
+{
+  "name": "embedded-test-v2",
+  "version": "2.0.0",
+  "main": "none",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "vite": "^5.0.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  }
+}

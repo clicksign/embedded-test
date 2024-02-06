@@ -18,7 +18,7 @@
         <div class="field enviroment">
           <label>Environment</label>
           <select id="request_enviroment">
-            <option value="http://127.0.0.1:3000">Local</option>
+            <option value="http://127.0.0.1:3100">Local</option>
             <option value="https://sandbox.clicksign.com">Sandbox</option>
             <option value="https://app.clicksign.com">Produção</option>
           </select>
@@ -61,8 +61,6 @@
           widget.endpoint = environment.value;
           widget.origin = window.location.href;
 
-          console.log(widget);
-
           widget.mount('widget');
         } catch (error) {
           console.log('error:', error);
@@ -70,22 +68,16 @@
 
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
-          document.getElementById('container').style.display = 'block';
+          document.getElementById('widget').style.display = 'block';
         });
 
-        widget.on('summary', function(ev) {
-          console.log('summary!', ev);
-          document.getElementById('container').style.display = 'block';
-        });
         widget.on('signed', function(ev) {
           console.log('signed!');
         });
-        widget.on('teste', function(ev) {
-          console.log('destroyed!');
-        });
+
         widget.on('resized', function(height) {
           console.log('resized!');
-          document.getElementById('container').style.height = height + 'px';
+          document.getElementById('widget').style.height = height + 'px';
         });
       }
 
