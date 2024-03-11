@@ -71,7 +71,7 @@
   </main>
 
   <script type="text/javascript">
-    const LOAD_SCRIPT_ID = 'tokenlessWidgetScript'
+    const TOKENLESS_SCRIPT_ID = 'tokenlessWidgetScript'
 
     const scriptMap = {
       v1: {
@@ -105,11 +105,11 @@
     }
 
     async function loadTokenlessScript(env, version) {
-      const oldScript = document.getElementById(LOAD_SCRIPT_ID);
+      const oldScript = document.getElementById(TOKENLESS_SCRIPT_ID);
       const script = document.createElement('script');
 
       script.setAttribute('src', scriptMap[version][env]);
-      script.setAttribute('id', LOAD_SCRIPT_ID);
+      script.setAttribute('id', TOKENLESS_SCRIPT_ID);
 
       if(oldScript) oldScript.remove();
       document.head.appendChild(script);
