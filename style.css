@@ -121,7 +121,7 @@ iframe {
   margin: 0;
 }
 
-.container {
+#container {
   display: flex;
   align-items: center;
   justify-content: center;
