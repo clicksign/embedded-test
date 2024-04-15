@@ -64,13 +64,6 @@ button {
   cursor: pointer;
 }
 
-button.remove {
-  background: darkred;
-  &:hover {
-    background: #b43030;
-  }
-}
-
 button.large {
   padding: 12px 24px;
   font-size: 18px;
@@ -84,6 +77,14 @@ button[disabled] {
   background: #ebebeb;
   color: #ccc;
   cursor: not-allowed;
+}
+
+button.remove {
+  background: darkred;
+}
+
+button.remove:hover {
+  background: #b43030;
 }
 
 /* SETTINGS */
