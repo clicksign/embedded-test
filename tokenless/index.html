@@ -25,14 +25,6 @@
         </select>
       </div>
 
-      <div class="field">
-        <label>Versão</label>
-        <select id="request_version">
-          <option value="v1">v1</option>
-          <option value="v2" selected>v2</option>
-        </select>
-      </div>
-
       <div class="action">
         <button id="setButton" type="submit" class="button" onclick="setWidget()">
           Carregar
@@ -71,19 +63,6 @@
   </main>
 
   <script type="text/javascript">
-    const TOKENLESS_SCRIPT_ID = 'tokenlessWidgetScript'
-
-    const scriptMap = {
-      v1: {
-        'sandbox': 'https://sandbox.clicksign.com/tokenlessWidget.js',
-        'production': 'https://app.clicksign.com/tokenlessWidget.js',
-      },
-      v2: {
-        'sandbox': 'https://sandbox.clicksign.com/tokenlessWidget-v2.0.0.js',
-        'production': 'https://app.clicksign.com/tokenlessWidget-v2.0.0.js',
-      }
-    }
-
     function openSettings() {
       document.getElementsByClassName('settings')[0].classList.remove('closed');
     }
@@ -91,42 +70,16 @@
     function closeSettings() {
       document.getElementsByClassName('settings')[0].classList.add('closed');
     }
+  </script>
 
-    function getSelectedConfig() {
-      const key = document.getElementById('key').value;
-      const environment = document.getElementById('request_enviroment').value;
-      const version = document.getElementById('request_version').value;
-
-      return {
-        key,
-        environment,
-        version
-      }
-    }
-
-    async function loadTokenlessScript(env, version) {
-      const oldScript = document.getElementById(TOKENLESS_SCRIPT_ID);
-      const script = document.createElement('script');
-
-      script.setAttribute('src', scriptMap[version][env]);
-      script.setAttribute('id', TOKENLESS_SCRIPT_ID);
-
-      if(oldScript) oldScript.remove();
-      document.head.appendChild(script);
-
-      return new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = reject;
-      })
-    }
-
-    async function setWidget(){
+  <script type="text/javascript">
+    function setWidget(){
       const submitButton = document.getElementById('submitButton')
-      const { key, environment, version } = getSelectedConfig();
 
-      await loadTokenlessScript(environment, version);
+      const key = document.getElementById('key').value
+      const enviroment = document.getElementById('request_enviroment').value
 
-      const tw = new tokenlessWidget(key, environment)
+      const tw = new tokenlessWidget(key, enviroment)
 
       tw.injectLoader('<div class="loader"><div></div><div></div><div></div><div></div></div>')
       closeSettings()
@@ -157,12 +110,6 @@
 
       submitButton.removeAttribute('disabled')
     }
-  </script>
-
-  <script defer>
-    const { environment, version } = getSelectedConfig();
-
-    loadTokenlessScript(environment, version);
   </script>
 </body>
 </html>
