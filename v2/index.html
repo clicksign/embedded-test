@@ -59,7 +59,7 @@
           if (widget) widget.unmount();
           widget = new Clicksign(request_signature_key);
           widget.endpoint = environment.value;
-          widget.origin = window.location.href;
+          widget.origin = 'https://app.clicksign.com';
 
           widget.mount('widget');
         } catch (error) {
@@ -72,7 +72,8 @@
         });
 
         widget.on('signed', function(ev) {
-          console.log('signed!');
+          console.log('signed!', widget.origin);
+          window.location.href = widow.origin;
         });
 
         widget.on('resized', function(height) {
