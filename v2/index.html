@@ -43,7 +43,9 @@
     </header>
 
     <main class="main">
-      <div class="container" id="widget" style="height: 600px;"></div>
+      <div class="loading" id="loading">Carregando...</div>
+
+      <div class="container" id="widget" style="display: none; height: 600px;"></div>
     </main>
 
     <script type="text/javascript">
@@ -51,6 +53,8 @@
         signature_request_key_element = document.getElementById('request_signature_key'),
         environment_element = document.getElementById('request_enviroment'),
         redirect_option_element = document.getElementById('redirect_option');
+        container_element = document.getElementById('widget');
+        loading_element = document.getElementById('loading');
 
       const ENVIRONMENTS_COUNT = 20;
       for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
@@ -72,13 +76,17 @@
 
           widget.mount('widget');
 
+          container_element.style.display = 'none';
+          loading_element.style.display = 'block';
         } catch (error) {
           console.log('error:', error);
         }
 
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
-          document.getElementById('widget').style.display = 'block';
+
+          loading_element.style.display = 'none';
+          container_element.style.display = 'block';
         });
 
         widget.on('signed', function(ev) {
@@ -89,7 +97,8 @@
 
         widget.on('resized', function(height) {
           console.log('resized!');
-          document.getElementById('widget').style.height = height + 'px';
+
+          container_element.style.height = height + 'px';
         });
       }
 
