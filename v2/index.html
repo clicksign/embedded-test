@@ -23,6 +23,7 @@
             <option value="https://app.clicksign.com">Produção</option>
           </select>
         </div>
+
         <div class="action">
           <button id="setButton" type="submit" class="button" onclick="setWidget()">
             Carregar
@@ -31,6 +32,12 @@
           <button id="removeButton" class="button remove" type="submit" onclick="removeWidget()">
             Remover
           </button>
+        </div>
+
+        <div class="options">
+          <label for="redirect_option">
+            <input type="checkbox" id="redirect_option" /> Ativar redirecionamento ao assinar
+          </label>
         </div>
       </fieldset>
     </header>
@@ -41,27 +48,30 @@
 
     <script type="text/javascript">
       let widget,
-        input = document.getElementById('request_signature_key'),
-        environment = document.getElementById('request_enviroment');
+        signature_request_key_element = document.getElementById('request_signature_key'),
+        environment_element = document.getElementById('request_enviroment'),
+        redirect_option_element = document.getElementById('redirect_option');
 
       const ENVIRONMENTS_COUNT = 20;
       for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
         let option = document.createElement('option');
         option.text = `Staging ${index}`;
         option.value = `https://${index}.clicksign.dev`;
-        environment.appendChild(option);
+        environment_element.appendChild(option);
       }
 
       function setWidget() {
-        let request_signature_key = input.value;
+        let request_signature_key = signature_request_key_element.value;
 
         try {
           if (widget) widget.unmount();
+
           widget = new Clicksign(request_signature_key);
-          widget.endpoint = environment.value;
-          widget.origin = window.location.href;
+          widget.endpoint = environment_element.value;
+          widget.origin = window.origin;
 
           widget.mount('widget');
+
         } catch (error) {
           console.log('error:', error);
         }
@@ -73,6 +83,8 @@
 
         widget.on('signed', function(ev) {
           console.log('signed!');
+
+          if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
         });
 
         widget.on('resized', function(height) {
@@ -82,9 +94,7 @@
       }
 
       function removeWidget() {
-        if (widget) {
-          widget.unmount();
-        }
+        if (widget) widget.unmount();
       }
     </script>
   </body>

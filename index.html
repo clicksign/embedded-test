@@ -32,6 +32,12 @@
             Remover
           </button>
         </div>
+
+        <div class="options">
+          <label for="redirect_option">
+            <input type="checkbox" id="redirect_option" /> Ativar redirecionamento ao assinar
+          </label>
+        </div>
       </fieldset>
     </header>
 
@@ -41,27 +47,27 @@
 
     <script type="text/javascript">
       let widget,
-        input = document.getElementById('request_signature_key'),
-        environment = document.getElementById('request_enviroment');
+        signature_request_key_element = document.getElementById('request_signature_key'),
+        environment_element = document.getElementById('request_enviroment'),
+        redirect_option_element = document.getElementById('redirect_option');
 
       const ENVIRONMENTS_COUNT = 20;
       for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
         let option = document.createElement('option');
         option.text = `Staging ${index}`;
         option.value = `https://${index}.clicksign.dev`;
-        environment.appendChild(option);
+        environment_element.appendChild(option);
       }
 
       function setWidget() {
-        let request_signature_key = input.value;
+        let request_signature_key = signature_request_key_element.value;
 
         try {
           if (widget) widget.unmount();
-          widget = new Clicksign(request_signature_key);
-          widget.endpoint = environment.value;
-          widget.origin = window.location.href;
 
-          console.log(widget);
+          widget = new Clicksign(request_signature_key);
+          widget.endpoint = environment_element.value;
+          widget.origin = window.origin;
 
           widget.mount('widget');
         } catch (error) {
@@ -70,29 +76,23 @@
 
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
-          document.getElementById('container').style.display = 'block';
+          document.getElementById('widget').style.display = 'block';
         });
 
-        widget.on('summary', function(ev) {
-          console.log('summary!', ev);
-          document.getElementById('container').style.display = 'block';
-        });
         widget.on('signed', function(ev) {
           console.log('signed!');
+
+          if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
         });
-        widget.on('teste', function(ev) {
-          console.log('destroyed!');
-        });
+
         widget.on('resized', function(height) {
           console.log('resized!');
-          document.getElementById('container').style.height = height + 'px';
+          document.getElementById('widget').style.height = height + 'px';
         });
       }
 
       function removeWidget() {
-        if (widget) {
-          widget.unmount();
-        }
+        if (widget) widget.unmount();
       }
     </script>
   </body>
