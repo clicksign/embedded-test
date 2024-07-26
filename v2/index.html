@@ -59,7 +59,7 @@
           if (widget) widget.unmount();
           widget = new Clicksign(request_signature_key);
           widget.endpoint = environment.value;
-          widget.origin = 'https://app.clicksign.com';
+          widget.origin = window.location.origin;
 
           widget.mount('widget');
         } catch (error) {
