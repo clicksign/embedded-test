@@ -132,3 +132,7 @@ iframe {
 .options {
   width: 100%;
 }
+
+.loadingText {
+  text-align: center;
+}

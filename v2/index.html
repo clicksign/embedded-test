@@ -43,7 +43,7 @@
     </header>
 
     <main class="main">
-      <div class="loading" id="loading">Carregando...</div>
+      <div class="loadingText" id="loading" style="display: none">Carregando...</div>
 
       <div class="container" id="widget" style="display: none; height: 600px;"></div>
     </main>
@@ -80,6 +80,9 @@
           loading_element.style.display = 'block';
         } catch (error) {
           console.log('error:', error);
+
+          loading_element.style.display = 'none';
+          container_element.style.display = 'none';
         }
 
         widget.on('loaded', function(ev) {
