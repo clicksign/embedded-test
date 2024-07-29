@@ -80,15 +80,13 @@
           loading_element.style.display = 'block';
         } catch (error) {
           console.log('error:', error);
-
+        } finally {
           loading_element.style.display = 'none';
-          container_element.style.display = 'none';
         }
 
         widget.on('loaded', function(ev) {
           console.log('loaded!', ev);
 
-          loading_element.style.display = 'none';
           container_element.style.display = 'block';
         });
 
@@ -102,6 +100,12 @@
           console.log('resized!');
 
           container_element.style.height = height + 'px';
+        });
+
+        widget.on('error', function(ev) {
+          console.log('error!', ev);
+
+          container_element.style.display = 'block';
         });
       }
 
