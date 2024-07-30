@@ -18,11 +18,12 @@
         <div class="field enviroment">
           <label>Environment</label>
           <select id="request_enviroment">
-            <option value="http://127.0.0.1:3100">Local</option>
+            <option value="http://127.0.0.1:3000">Local</option>
             <option value="https://sandbox.clicksign.com">Sandbox</option>
             <option value="https://app.clicksign.com">Produção</option>
           </select>
         </div>
+
         <div class="action">
           <button id="setButton" type="submit" class="button" onclick="setWidget()">
             Carregar
@@ -32,59 +33,89 @@
             Remover
           </button>
         </div>
+
+        <div class="options">
+          <label for="redirect_option">
+            <input type="checkbox" id="redirect_option" /> Ativar redirecionamento ao assinar
+          </label>
+        </div>
       </fieldset>
     </header>
 
     <main class="main">
-      <div class="container" id="widget" style="height: 600px;"></div>
+      <div class="loadingText" id="loading" style="display: none">Carregando...</div>
+
+      <div class="container" id="widget" style="display: none; height: 600px;"></div>
     </main>
 
     <script type="text/javascript">
       let widget,
-        input = document.getElementById('request_signature_key'),
-        environment = document.getElementById('request_enviroment');
+        signature_request_key_element = document.getElementById('request_signature_key'),
+        environment_element = document.getElementById('request_enviroment'),
+        redirect_option_element = document.getElementById('redirect_option');
+        container_element = document.getElementById('widget');
+        loading_element = document.getElementById('loading');
 
       const ENVIRONMENTS_COUNT = 20;
       for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
         let option = document.createElement('option');
         option.text = `Staging ${index}`;
         option.value = `https://${index}.clicksign.dev`;
-        environment.appendChild(option);
+        environment_element.appendChild(option);
+      }
+
+      function debugEvent(event) {
+        console.info(`Event: ${event.name || event}`);
+        if (event.data) console.table(event.data);
       }
 
       function setWidget() {
-        let request_signature_key = input.value;
+        let request_signature_key = signature_request_key_element.value;
 
         try {
           if (widget) widget.unmount();
+
           widget = new Clicksign(request_signature_key);
-          widget.endpoint = environment.value;
-          widget.origin = window.location.href;
+          widget.endpoint = environment_element.value;
+          widget.origin = window.origin;
 
           widget.mount('widget');
+
+          container_element.style.display = 'none';
+          loading_element.style.display = 'block';
         } catch (error) {
           console.log('error:', error);
+        } finally {
+          loading_element.style.display = 'none';
         }
 
-        widget.on('loaded', function(ev) {
-          console.log('loaded!', ev);
-          document.getElementById('widget').style.display = 'block';
+        widget.on('loaded', function(event) {
+          debugEvent(event);
+
+          container_element.style.display = 'block';
         });
 
-        widget.on('signed', function(ev) {
-          console.log('signed!');
+        widget.on('signed', function(event) {
+          debugEvent(event);
+          
+          if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
         });
 
-        widget.on('resized', function(height) {
-          console.log('resized!');
-          document.getElementById('widget').style.height = height + 'px';
+        widget.on('resized', function(event) {
+          debugEvent(event);
+
+          container_element.style.height = event.data.height + 'px';
+        });
+
+        widget.on('error', function(event) {
+          debugEvent(event);
+
+          container_element.style.display = 'block';
         });
       }
 
       function removeWidget() {
-        if (widget) {
-          widget.unmount();
-        }
+        if (widget) widget.unmount();
       }
     </script>
   </body>
