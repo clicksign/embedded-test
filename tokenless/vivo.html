@@ -94,11 +94,11 @@
         }
 
         tw.sign(data).then(() => {
-          submitButton.setAttribute("value", "Assinatura realizada com sucesso!");
+          submitButton.innerHTML = "Assinatura realizada com sucesso!";
           submitButton.setAttribute("style", "background-color: green;");
           console.log('Assinatura realizada com sucesso!')
         }).catch((error) => {
-          submitButton.setAttribute("value", `Erro ao assinar o documento. Confira log`);
+          submitButton.innerHTML = `Erro ao assinar o documento. Confira log`;
           submitButton.setAttribute("style", "background-color: red;");
           console.log(error.code, error.message)
         })
