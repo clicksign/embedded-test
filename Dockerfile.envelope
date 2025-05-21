@@ -1,0 +1,10 @@
+FROM node:18-alpine
+
+WORKDIR /app
+COPY ./v2/package.json ./v2/yarn.lock ./
+RUN yarn install
+
+COPY ./v2 .
+EXPOSE 5173
+
+CMD ["yarn", "dev", "--host"]
