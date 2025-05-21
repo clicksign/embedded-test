@@ -7,11 +7,3 @@ services:
       - .:/app
     environment:
       - NODE_ENV=development
-
-  ngrok:
-    image: ngrok/ngrok:alpine
-    command: http app:5173
-    environment:
-      - NGROK_AUTHTOKEN=2inUVybyhyteGffjlVfIQjDrHdd_4Y1LPuTGZbbaJKEkQZDRt
-    depends_on:
-      - app
