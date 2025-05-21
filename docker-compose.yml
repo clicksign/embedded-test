@@ -1,9 +1,22 @@
 services:
-  app:
-    build: .
+  batch:
+    build:
+      context: .
+      dockerfile: Dockerfile.batch
     ports:
       - "5173:5173"
     volumes:
       - .:/app
+    environment:
+      - NODE_ENV=development
+
+  envelope:
+    build:
+      context: .
+      dockerfile: Dockerfile.envelope
+    ports:
+      - "5174:5173"
+    volumes:
+      - ./v2:/app
     environment:
       - NODE_ENV=development
