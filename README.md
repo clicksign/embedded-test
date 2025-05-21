@@ -22,8 +22,8 @@ Para o uso em testes para o Tokenless, você pode utilizar o link: [**Tokenless*
 1. Você precisará do [docker](https://www.docker.com/) instalado.
 2. Você precisará do [docker-compose](https://docs.docker.com/compose/) instalado.
 3. Executar o comando `docker-compose up` para subir as aplicações (v1 e v2).
-  3.1. Executar o comando `docker-compose up batch` para subir apenas a aplicação v1 (batch).
-  3.2. Executar o comando `docker-compose up envelope` para subir apenas a aplicação v2 (envelope).
+    3.1. Executar o comando `docker-compose up batch` para subir apenas a aplicação v1 (batch).
+    3.2. Executar o comando `docker-compose up envelope` para subir apenas a aplicação v2 (envelope).
 4. Acessar a aplicação em `http://localhost:5173` para a versão v1 (batch) ou `http://localhost:5174` para a versão v2 (envelope).
 
 ## Como contribuir
