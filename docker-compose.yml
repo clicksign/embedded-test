@@ -9,6 +9,7 @@ services:
       - .:/app
     environment:
       - NODE_ENV=development
+      - VITE_ENVIRONMENTS_COUNT=0
 
   envelope:
     build:
@@ -20,3 +21,4 @@ services:
       - ./v2:/app
     environment:
       - NODE_ENV=development
+      - VITE_ENVIRONMENTS_COUNT=0

@@ -18,11 +18,11 @@
         <div class="field enviroment">
           <label>Environment</label>
           <select id="request_enviroment">
-            <option value="http://127.0.0.1:3000">Local</option>
             <option value="https://sandbox.clicksign.com">Sandbox</option>
             <option value="https://app.clicksign.com">Produção</option>
             <option value="https://vivo-sandbox.clicksign.com">Vivo Sandbox</option>
             <option value="https://vivo.clicksign.com">Vivo Produção</option>
+            <option value="http://127.0.0.1:3000">Local</option>
           </select>
         </div>
         <div class="action">
@@ -49,74 +49,83 @@
       <div class="container" id="widget" style="display: none; height: 600px;"></div>
     </main>
 
+    <script type="module">
+      let const_value = 20
+      if (typeof import.meta.env !== 'undefined') {
+        const_value = Number(import.meta.env?.VITE_ENVIRONMENTS_COUNT);
+      }
+      window.ENVIRONMENTS_COUNT = const_value;
+    </script>
+
     <script type="text/javascript">
-      let widget,
-        signature_request_key_element = document.getElementById('request_signature_key'),
-        environment_element = document.getElementById('request_enviroment'),
-        redirect_option_element = document.getElementById('redirect_option');
-        container_element = document.getElementById('widget');
-        loading_element = document.getElementById('loading');
+      window.onload = function() {
+        let widget,
+          signature_request_key_element = document.getElementById('request_signature_key'),
+          environment_element = document.getElementById('request_enviroment'),
+          redirect_option_element = document.getElementById('redirect_option');
+          container_element = document.getElementById('widget');
+          loading_element = document.getElementById('loading');
 
-      const ENVIRONMENTS_COUNT = 20;
-      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
-        let option = document.createElement('option');
-        option.text = `Staging ${index}`;
-        option.value = `https://${index}.clicksign.dev`;
-        environment_element.appendChild(option);
-      }
-
-      function debugEvent(eventName, data) {
-        console.info(`Event: ${event.name || event}`);
-        if (event.data) console.table(event.data);
-      }
-
-      function setWidget() {
-        let request_signature_key = signature_request_key_element.value;
-
-        try {
-          if (widget) widget.unmount();
-
-          widget = new Clicksign(request_signature_key);
-          widget.endpoint = environment_element.value;
-          widget.origin = window.origin;
-
-          widget.mount('widget');
-
-          container_element.style.display = 'none';
-          loading_element.style.display = 'block';
-        } catch (error) {
-          console.log('error:', error);
-        } finally {
-          loading_element.style.display = 'none';
+        for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+          let option = document.createElement('option');
+          option.text = `Staging ${index}`;
+          option.value = `https://${index}.clicksign.dev`;
+          environment_element.appendChild(option);
         }
 
-        widget.on('loaded', function(event) {
-          debugEvent('loaded');
+        function debugEvent(eventName, data) {
+          console.info(`Event: ${event.name || event}`);
+          if (event.data) console.table(event.data);
+        }
 
-          container_element.style.display = 'block';
-        });
+        function setWidget() {
+          let request_signature_key = signature_request_key_element.value;
 
-        widget.on('signed', function(event) {
-          debugEvent('signed');
+          try {
+            if (widget) widget.unmount();
 
-          if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
-        });
+            widget = new Clicksign(request_signature_key);
+            widget.endpoint = environment_element.value;
+            widget.origin = window.origin;
 
-        widget.on('resized', function(event) {
-          debugEvent({ name: 'resized', height: event });
+            widget.mount('widget');
 
-          container_element.style.height = event + 'px';
-        });
+            container_element.style.display = 'none';
+            loading_element.style.display = 'block';
+          } catch (error) {
+            console.log('error:', error);
+          } finally {
+            loading_element.style.display = 'none';
+          }
 
-        widget.on('error', function(event) {
-          debugEvent('error');
+          widget.on('loaded', function(event) {
+            debugEvent('loaded');
 
-          container_element.style.display = 'block';
-        });
-      }
+            container_element.style.display = 'block';
+          });
 
-      function removeWidget() {
-        if (widget) widget.unmount();
+          widget.on('signed', function(event) {
+            debugEvent('signed');
+
+            if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
+          });
+
+          widget.on('resized', function(event) {
+            debugEvent({ name: 'resized', height: event });
+
+            container_element.style.height = event + 'px';
+          });
+
+          widget.on('error', function(event) {
+            debugEvent('error');
+
+            container_element.style.display = 'block';
+          });
+        }
+
+        function removeWidget() {
+          if (widget) widget.unmount();
+        }
       }
     </script>
   </body>
