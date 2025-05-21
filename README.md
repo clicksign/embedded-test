@@ -17,10 +17,9 @@ Para o uso em testes para o Tokenless, você pode utilizar o link: [**Tokenless*
    > Estamos utilizando o [Yarn](https://yarnpkg.com/)
 4. Instalar as dependências setadas no projeto: `yarn install`
 5. Executar o comando para rodar em modo de desenvolvimento `yarn dev`
-6. Para requisições à aplicação será necessário que estas partam de uma requisição segura (https). Para isso, você pode utilizar o [ngrok](https://ngrok.com/) para fazer o tunelamento da sua aplicação local para a internet.
-7. Criar sua conta ngrok e obter a chave de autenticação.
-   > Você pode utilizar o comando `ngrok authtoken <token>` para autenticar sua conta.
-8. Exemplo: `ngrok http 5173` (caso esteja rodando na porta 5173)
+6. Para requisições à aplicação será necessário que estas partam de uma requisição segura (https). Para isso, você pode utilizar o [ngrok](https://ngrok.com/).
+7. Criar a sua conta ngrok e obter a chave de autenticação.
+8. Iniciar o ngrok, exemplo: `ngrok http 5173` (caso esteja rodando na porta 5173).
 
 ## Ambiente docker
 1. Você precisará do [docker](https://www.docker.com/) instalado.
@@ -30,9 +29,9 @@ Para o uso em testes para o Tokenless, você pode utilizar o link: [**Tokenless*
 5. O link gerado estará disponível em https://dashboard.ngrok.com/endpoints
 
 ## Como contribuir
-Sua contribuição é bem vinda!
+A sua contribuição é bem-vinda!
 
-Ao encontrar algum problema ou tenha idéia de alguma melhoria pode abrir uma [_issue_](https://github.com/clicksign/embedded-test/issues).
+Ao encontrar algum problema ou tenha ideia de alguma melhoria pode abrir uma [_issue_](https://github.com/clicksign/embedded-test/issues).
 Em caso de sugestões de melhorias no código, pode submeter um [_pull request_ ](https://github.com/clicksign/embedded-test/pulls) onde será revisado pelo time técnico e acompanhado.
 
 
