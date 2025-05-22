@@ -58,74 +58,74 @@
     </script>
 
     <script type="text/javascript">
-      window.onload = function() {
-        let widget,
-          signature_request_key_element = document.getElementById('request_signature_key'),
-          environment_element = document.getElementById('request_enviroment'),
-          redirect_option_element = document.getElementById('redirect_option');
-          container_element = document.getElementById('widget');
-          loading_element = document.getElementById('loading');
+      let widget,
+        signature_request_key_element = document.getElementById('request_signature_key'),
+        environment_element = document.getElementById('request_enviroment'),
+        redirect_option_element = document.getElementById('redirect_option');
+        container_element = document.getElementById('widget');
+        loading_element = document.getElementById('loading');
 
+      window.onload = function() {
         for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
           let option = document.createElement('option');
           option.text = `Staging ${index}`;
           option.value = `https://${index}.clicksign.dev`;
           environment_element.appendChild(option);
         }
+      }
 
-        function debugEvent(eventName, data) {
-          console.info(`Event: ${event.name || event}`);
-          if (event.data) console.table(event.data);
-        }
+      function debugEvent(eventName, data) {
+        console.info(`Event: ${event.name || event}`);
+        if (event.data) console.table(event.data);
+      }
 
-        function setWidget() {
-          let request_signature_key = signature_request_key_element.value;
+      function setWidget() {
+        let request_signature_key = signature_request_key_element.value;
 
-          try {
-            if (widget) widget.unmount();
-
-            widget = new Clicksign(request_signature_key);
-            widget.endpoint = environment_element.value;
-            widget.origin = window.origin;
-
-            widget.mount('widget');
-
-            container_element.style.display = 'none';
-            loading_element.style.display = 'block';
-          } catch (error) {
-            console.log('error:', error);
-          } finally {
-            loading_element.style.display = 'none';
-          }
-
-          widget.on('loaded', function(event) {
-            debugEvent('loaded');
-
-            container_element.style.display = 'block';
-          });
-
-          widget.on('signed', function(event) {
-            debugEvent('signed');
-
-            if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
-          });
-
-          widget.on('resized', function(event) {
-            debugEvent({ name: 'resized', height: event });
-
-            container_element.style.height = event + 'px';
-          });
-
-          widget.on('error', function(event) {
-            debugEvent('error');
-
-            container_element.style.display = 'block';
-          });
-        }
-
-        function removeWidget() {
+        try {
           if (widget) widget.unmount();
+
+          widget = new Clicksign(request_signature_key);
+          widget.endpoint = environment_element.value;
+          widget.origin = window.origin;
+
+          widget.mount('widget');
+
+          container_element.style.display = 'none';
+          loading_element.style.display = 'block';
+        } catch (error) {
+          console.log('error:', error);
+        } finally {
+          loading_element.style.display = 'none';
         }
+
+        widget.on('loaded', function(event) {
+          debugEvent('loaded');
+
+          container_element.style.display = 'block';
+        });
+
+        widget.on('signed', function(event) {
+          debugEvent('signed');
+
+          if (redirect_option_element.checked) window.location.assign('https://clicksign.com');
+        });
+
+        widget.on('resized', function(event) {
+          debugEvent({ name: 'resized', height: event });
+
+          container_element.style.height = event + 'px';
+        });
+
+        widget.on('error', function(event) {
+          debugEvent('error');
+
+          container_element.style.display = 'block';
+        });
+      }
+
+      function removeWidget() {
+        if (widget) widget.unmount();
       }
     </script>
   </body>

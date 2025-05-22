@@ -5,8 +5,6 @@ services:
       dockerfile: Dockerfile.batch
     ports:
       - "5173:5173"
-    volumes:
-      - .:/app
     environment:
       - NODE_ENV=development
       - VITE_ENVIRONMENTS_COUNT=0
@@ -17,8 +15,6 @@ services:
       dockerfile: Dockerfile.envelope
     ports:
       - "5174:5173"
-    volumes:
-      - ./v2:/app
     environment:
       - NODE_ENV=development
       - VITE_ENVIRONMENTS_COUNT=0
