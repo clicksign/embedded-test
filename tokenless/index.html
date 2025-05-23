@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACM Seguros</title>
   <link href="styles/style.css" rel="stylesheet"></link>
-  <script src="https://sandbox.clicksign.com/tokenlessWidget.js"></script>
+  <script src="https://app.clicksign.com/tokenlessWidget.js"></script>
 </head>
 
 <body>
@@ -94,11 +94,11 @@
         }
 
         tw.sign(data).then(() => {
-          submitButton.setAttribute("value", "Assinatura realizada com sucesso!");
+          submitButton.innerHTML = "Assinatura realizada com sucesso!";
           submitButton.setAttribute("style", "background-color: green;");
           console.log('Assinatura realizada com sucesso!')
         }).catch((error) => {
-          submitButton.setAttribute("value", `Erro ao assinar o documento. Confira log`);
+          submitButton.innerHTML =`Erro ao assinar o documento. Confira log`;
           submitButton.setAttribute("style", "background-color: red;");
           console.log(error.code, error.message)
         })

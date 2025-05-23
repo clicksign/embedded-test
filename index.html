@@ -12,17 +12,17 @@
       <h2>⚙️ Configurações</h2>
       <fieldset class="form">
         <div class="field batch-key">
-          <label>Request Signature Key</label>
+          <label>Chave da solicitação de assinatura (batch)</label>
           <input type="text" id="request_signature_key" value="" />
         </div>
         <div class="field enviroment">
           <label>Environment</label>
           <select id="request_enviroment">
-            <option value="http://127.0.0.1:3000">Local</option>
             <option value="https://sandbox.clicksign.com">Sandbox</option>
             <option value="https://app.clicksign.com">Produção</option>
             <option value="https://vivo-sandbox.clicksign.com">Vivo Sandbox</option>
             <option value="https://vivo.clicksign.com">Vivo Produção</option>
+            <option value="http://127.0.0.1:3000">Local</option>
           </select>
         </div>
         <div class="action">
@@ -49,6 +49,14 @@
       <div class="container" id="widget" style="display: none; height: 600px;"></div>
     </main>
 
+    <script type="module">
+      let const_value = 20
+      if (typeof import.meta.env !== 'undefined') {
+        const_value = Number(import.meta.env?.VITE_ENVIRONMENTS_COUNT);
+      }
+      window.ENVIRONMENTS_COUNT = const_value;
+    </script>
+
     <script type="text/javascript">
       let widget,
         signature_request_key_element = document.getElementById('request_signature_key'),
@@ -57,12 +65,13 @@
         container_element = document.getElementById('widget');
         loading_element = document.getElementById('loading');
 
-      const ENVIRONMENTS_COUNT = 20;
-      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
-        let option = document.createElement('option');
-        option.text = `Staging ${index}`;
-        option.value = `https://${index}.clicksign.dev`;
-        environment_element.appendChild(option);
+      window.onload = function() {
+        for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+          let option = document.createElement('option');
+          option.text = `Staging ${index}`;
+          option.value = `https://${index}.clicksign.dev`;
+          environment_element.appendChild(option);
+        }
       }
 
       function debugEvent(eventName, data) {
