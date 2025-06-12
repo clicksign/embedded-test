@@ -63,7 +63,26 @@
     </form>
   </main>
 
+  <script type="module">
+    let const_value = 20
+    if (typeof import.meta.env !== 'undefined') {
+      const_value = Number(import.meta.env?.VITE_ENVIRONMENTS_COUNT);
+    }
+    window.ENVIRONMENTS_COUNT = const_value;
+  </script>
+
   <script type="text/javascript">
+    let environment_element = document.getElementById('request_enviroment')
+
+    window.onload = function() {
+      for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+        let option = document.createElement('option');
+        option.text = `Staging ${index}`;
+        option.value = `staging${index}`;
+        environment_element.appendChild(option);
+      }
+    }
+
     function openSettings() {
       document.getElementsByClassName('settings')[0].classList.remove('closed');
     }
@@ -71,14 +90,21 @@
     function closeSettings() {
       document.getElementsByClassName('settings')[0].classList.add('closed');
     }
-  </script>
 
-  <script type="text/javascript">
     function setWidget(){
       const submitButton = document.getElementById('submitButton')
 
       const key = document.getElementById('key').value
       const enviroment = document.getElementById('request_enviroment').value
+
+      window.onload = function() {
+        for (let index = 1; index <= 20; index++) {
+          let option = document.createElement('option');
+          option.text = `Staging ${index}`;
+          option.value = `staging${index}`;
+          environment.appendChild(option);
+        }
+      }
 
       const tw = new tokenlessWidget(key, enviroment)
 
