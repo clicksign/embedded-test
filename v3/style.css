@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #f05830;
+  --secondary-color: #EDE9FE;
+  --text-color: #1F2937;
+  --background-color: #F9FAFB;
+  --border-color: #D1D5DB;
+  --success-color: #10B981;
+  --error-color: #EF4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 1024px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    grid-template-columns: 400px 1fr;
+  }
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form .field {
+  margin-bottom: 1.25rem;
+}
+
+.action {
+  margin-top: 1.5rem;
+}
+
+.form label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inline-field label {
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+.form input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+}
+
+.form input,
+.form select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #F9FAFB;
+  color: var(--text-color);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form input:focus,
+.form select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--secondary-color);
+}
+
+.button {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--primary-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #d94e2a;
+}
+
+.button:disabled {
+  background-color: #f6a088;
+  cursor: not-allowed;
+}
+
+.button.large {
+  padding: 1rem;
+  font-size: 1.125rem;
+}
+
+.signer-info .grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#widget {
+  padding: 1.5rem;
+  border: 2px dashed var(--border-color);
+  border-radius: 0.5rem;
+  text-align: center;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loader {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+.loader div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border: 8px solid var(--primary-color);
+    border-radius: 50%;
+    animation: loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--primary-color) transparent transparent transparent;
+}
+.loader div:nth-child(1) {
+    animation-delay: -0.45s;
+}
+.loader div:nth-child(2) {
+    animation-delay: -0.3s;
+}
+.loader div:nth-child(3) {
+    animation-delay: -0.15s;
+}
+@keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.cs-acceptance-preview {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cs-acceptance-preview:hover {
+  text-decoration: underline;
+}
+
+.loading body {
+  cursor: wait;
+}
+
+.loading .card {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.signed .card:first-child,
+.error .card:first-child {
+  transform: scale(0.95);
+  opacity: 0.5;
+}
+
+.signed main.card {
+  border-color: var(--success-color);
+}
+
+.error main.card {
+  border-color: var(--error-color);
+}
+
+.hidden-field {
+  display: none !important;
+}
+
+#notification {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  display: none;
+}
+
+#notification.success {
+  display: block;
+  background-color: var(--secondary-color);
+  color: var(--success-color);
+}
+
+#notification.error {
+  display: block;
+  background-color: #FEF2F2;
+  color: var(--error-color);
+}

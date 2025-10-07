@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinatura Encorporada Moderna</title>
+    <link href="../style.css" rel="stylesheet"/>
+    <script src="../noWidget.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <aside class="card">
+        <h2 class="title">⚙️ Configurações</h2>
+        <div class="form">
+          <div class="field">
+            <label for="key">Chave do Signatário</label>
+            <input type="text" id="key" name="key" required="true" value="79166dbd-04a9-4196-b083-58038a17efb8" />
+          </div>
+          <div class="field">
+            <label for="request_enviroment">Environment</label>
+            <select id="request_enviroment">
+              <option value="sandbox" selected>Sandbox</option>
+              <option value="production">Produção</option>
+            </select>
+          </div>
+          <div class="action">
+            <button id="setButton" type="submit" class="button" onclick="init()">
+              Carregar
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="card">
+        <h2 class="title">🙋 Preencha seus dados</h2>
+        <div id="notification"></div>
+        <form id="form" action="#" onsubmit="return false" class="form">
+          <div class="signer-info">
+            <div class="grid">
+              <div class="field">
+                <label for="name">Nome</label>
+                <input type="text" id="name" name="name" />
+              </div>
+              <div class="field" id="cpf-field-container">
+                <label for="cpf">CPF</label>
+                <input type="text" id="cpf" name="cpf" />
+              </div>
+            </div>
+            <div class="field" id="birthdate-field-container">
+              <label for="birthdate">Data de nascimento</label>
+              <input type="date" id="birthdate" name="birthdate" />
+            </div>
+          </div>
+
+          <div id="widget"></div>
+
+          <div class="action">
+            <button type="submit" class="button large" id="submitButton" disabled="disabled">
+              Clique para assinar
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script type="module">
+      let const_value = 20
+      if (typeof import.meta.env !== 'undefined') {
+        const_value = Number(import.meta.env?.VITE_ENVIRONMENTS_COUNT);
+      }
+      window.ENVIRONMENTS_COUNT = const_value;
+    </script>
+
+    <script type="text/javascript">
+      let environment_element = document.getElementById('request_enviroment')
+
+      window.onload = function() {
+        for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
+          let option = document.createElement('option');
+          option.text = `Staging ${index}`;
+          option.value = `staging${index}`;
+          environment_element.appendChild(option);
+        }
+      }
+    </script>
+
+    <script type="text/javascript">
+      function init(){
+        const key = document.getElementById('key').value
+        const enviroment = document.getElementById('request_enviroment').value
+        const submitButton = document.getElementById('submitButton')
+
+        const nw = new noWidget(key, enviroment)
+
+        nw.injectLoader('<div class="loader"><div></div><div></div><div></div><div></div></div>')
+
+        nw.attach('click', 'submitButton', () => {
+          document.body.classList.remove('error');
+          document.body.classList.add('loading');
+          const data = {
+            "signature": {
+              "signer": {
+                "name": document.getElementById("name").value,
+                "birthday": document.getElementById("birthdate").value,
+                "documentation": document.getElementById("cpf").value
+              },
+              "document_keys": nw.getDocumentKeys()
+            }
+          }
+
+          const notification = document.getElementById('notification');
+
+          nw.sign(data).then(() => {
+            document.body.classList.remove('loading');
+            document.body.classList.add('signed');
+            submitButton.disabled = true;
+            notification.innerHTML = "Assinatura realizada com sucesso!";
+            notification.classList.add('success');
+            notification.classList.remove('error');
+            console.log('Assinatura realizada com sucesso!')
+          }).catch((error) => {
+            document.body.classList.remove('loading');
+            document.body.classList.add('error');
+            submitButton.disabled = false;
+            notification.innerHTML = `Erro ao assinar o documento. Confira log`;
+            notification.classList.add('error');
+            notification.classList.remove('success');
+            console.log(error.code, error.message)
+          })
+        })
+
+        nw.mount({'containerId':'widget'})
+
+        submitButton.removeAttribute('disabled')
+      }
+    </script>
+  </body>
+</html>
