@@ -1,0 +1,282 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Autenticação de Identidade - Ambiente de Testes do SDK</title>
+    <script src="./embedded.js"></script>
+    <link href="./style.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="page-header">
+      <div class="header-content">
+        <h1>🔐 SDK de Autenticação de Identidade (Liveness)</h1>
+        <p class="subtitle">Teste e valide a autenticação biométrica de prova de vida integrada</p>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- Configuration Panel -->
+      <aside class="sidebar">
+        <div class="card">
+          <h2>⚙️ Configuração</h2>
+          
+          <div class="info-box">
+            <h3>Sobre este SDK</h3>
+            <p>Este widget permite verificação segura de identidade através de detecção biométrica de prova de vida. Os casos de uso incluem:</p>
+            <ul>
+              <li>Autenticação para assinatura de documentos</li>
+              <li>Verificação de identidade</li>
+              <li>Validação antifraude</li>
+              <li>Controle de acesso seguro</li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label for="session_key">Chave da Sessão de Autenticação</label>
+            <input 
+              type="text" 
+              id="session_key" 
+              placeholder="Insira a chave da sessão aqui..."
+              value="" 
+            />
+            <small>Obtenha esta chave da sua sessão de autenticação</small>
+          </div>
+
+          <div class="button-group">
+            <button id="setButton" class="button primary" onclick="setWidget()">
+              ▶️ Carregar Widget
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Event Monitor (Main Content) -->
+      <main class="content">
+        <div class="card event-monitor-main">
+          <div class="monitor-header">
+            <h2>📡 Monitor de Eventos do SDK</h2>
+            <button class="button small clear-btn" onclick="clearEvents()">Limpar</button>
+          </div>
+          <div id="eventLog" class="event-log">
+            <div class="event-item info">
+              <span class="event-time">--:--:--</span>
+              <span class="event-name">Aguardando eventos...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Fullscreen Modal -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+      <div class="modal-container">
+        <button class="modal-close" id="modalClose" onclick="closeModal()">
+          <span>✕</span>
+        </button>
+        <div class="modal-loading" id="modalLoading">
+          <div class="spinner"></div>
+          <p>Carregando widget de autenticação...</p>
+        </div>
+        <div class="modal-content" id="widget"></div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      let widget,
+        session_key_element = document.getElementById('session_key'),
+        modal_overlay = document.getElementById('modalOverlay'),
+        modal_loading = document.getElementById('modalLoading'),
+        modal_close = document.getElementById('modalClose'),
+        container_element = document.getElementById('widget'),
+        event_log = document.getElementById('eventLog'),
+        load_button = document.getElementById('setButton');
+
+      let eventCount = 0;
+      const BUTTON_TEXT = {
+        default: '▶️ Carregar Widget',
+        loading: '⏳ Inicializando...'
+      };
+
+      function setButtonLoading(isLoading) {
+        if (isLoading) {
+          load_button.textContent = BUTTON_TEXT.loading;
+          load_button.disabled = true;
+        } else {
+          load_button.textContent = BUTTON_TEXT.default;
+          load_button.disabled = false;
+        }
+      }
+
+      function updateStatus(status, type = 'info') {
+        // Status updates are now tracked via event log only
+        console.log(`Status: ${status} (${type})`);
+      }
+
+      function formatTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('pt-BR', { hour12: false });
+      }
+
+      function logEvent(eventName, eventData, type = 'info') {
+        eventCount++;
+        
+        const eventItem = document.createElement('div');
+        eventItem.className = `event-item ${type}`;
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'event-time';
+        timeSpan.textContent = formatTime();
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'event-name';
+        nameSpan.textContent = eventName;
+        
+        eventItem.appendChild(timeSpan);
+        eventItem.appendChild(nameSpan);
+        
+        if (eventData) {
+          const dataDiv = document.createElement('div');
+          dataDiv.className = 'event-data';
+          dataDiv.textContent = JSON.stringify(eventData, null, 2);
+          eventItem.appendChild(dataDiv);
+        }
+        
+        // Remove placeholder
+        const placeholder = event_log.querySelector('.info');
+        if (placeholder && placeholder.textContent.includes('Aguardando')) {
+          placeholder.remove();
+        }
+        
+        event_log.insertBefore(eventItem, event_log.firstChild);
+        
+        // Limit to 50 events
+        while (event_log.children.length > 50) {
+          event_log.removeChild(event_log.lastChild);
+        }
+      }
+
+      function clearEvents() {
+        event_log.innerHTML = `
+          <div class="event-item info">
+            <span class="event-time">--:--:--</span>
+            <span class="event-name">Log de eventos limpo</span>
+          </div>
+        `;
+        eventCount = 0;
+      }
+
+      function debugEvent(event, type = 'info') {
+        const eventName = event.name || event;
+        console.info(`Event: ${eventName}`);
+        if (event.data) console.table(event.data);
+        
+        logEvent(eventName, event.data, type);
+      }
+
+      function openModal() {
+        modal_overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        logEvent('Modal Aberto', null, 'info');
+      }
+
+      function closeModal() {
+        if (widget) {
+          widget.unmount();
+        }
+        modal_overlay.style.display = 'none';
+        modal_loading.style.display = 'flex';
+        container_element.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        updateStatus('Não Carregado', 'info');
+        logEvent('Modal Fechado', null, 'info');
+      }
+
+      // Close modal with ESC key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal_overlay.style.display === 'flex') {
+          closeModal();
+        }
+      });
+
+      function setWidget() {
+        let session_key = session_key_element.value;
+
+        if (!session_key || session_key.trim() === '') {
+          alert('Por favor, insira uma chave de sessão de autenticação');
+          logEvent('Erro de Validação', { message: 'Chave de sessão é obrigatória' }, 'error');
+          return;
+        }
+
+        try {
+          setButtonLoading(true);
+          updateStatus('Inicializando...', 'loading');
+          logEvent('Inicialização do Widget', { key: session_key.substring(0, 20) + '...' }, 'info');
+
+          if (widget) {
+            widget.unmount();
+            logEvent('Widget Anterior Removido', null, 'info');
+          }
+
+          widget = new Clicksign(session_key);
+          widget.origin = window.origin;
+          widget.endpoint = 'http://localhost:3000';
+
+          widget.mount('widget');
+
+        } catch (error) {
+          console.error('Erro:', error);
+          setButtonLoading(false);
+          updateStatus('Erro', 'error');
+          logEvent('Erro ao Montar', { error: error.message }, 'error');
+          return;
+        }
+
+        widget.on('loaded', function(event) {
+          console.log('loaded', event);
+          debugEvent(event, 'success');
+          setButtonLoading(false);
+          updateStatus('Carregado - Abrindo Modal', 'success');
+          
+          // Open modal only after widget is fully loaded
+          openModal();
+          modal_loading.style.display = 'none';
+          container_element.style.display = 'block';
+          updateStatus('Modal Aberto', 'success');
+        });
+
+        widget.on('success', function(event) {
+          debugEvent(event, 'success');
+          updateStatus('Autenticado ✓', 'success');
+        });
+
+        widget.on('resized', function(event) {
+          debugEvent(event, 'info');
+        });
+
+        widget.on('error', function(event) {
+          debugEvent(event, 'error');
+          setButtonLoading(false);
+          updateStatus('Erro', 'error');
+          
+          // Close modal on error
+          if (modal_overlay.style.display === 'flex') {
+            closeModal();
+          }
+        });
+
+        widget.on('closed', function(event) {
+          debugEvent(event, 'info');
+          updateStatus('Fechado', 'info');
+          closeModal();
+        });
+      }
+
+      function removeWidget() {
+        closeModal();
+      }
+    </script>
+  </body>
+</html>
+
