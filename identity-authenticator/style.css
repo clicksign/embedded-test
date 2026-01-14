@@ -155,7 +155,8 @@ label {
   color: #2d3748;
 }
 
-input[type=text] {
+input[type=text],
+select {
   background: white;
   border: 2px solid #e2e8f0;
   padding: 10px 14px;
@@ -166,7 +167,8 @@ input[type=text] {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input[type=text]:focus {
+input[type=text]:focus,
+select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -174,6 +176,15 @@ input[type=text]:focus {
 
 input[type=text]::placeholder {
   color: #a0aec0;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
 }
 
 small {

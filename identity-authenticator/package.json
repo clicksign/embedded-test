@@ -1,6 +1,6 @@
 {
-  "name": "embedded-test-v2",
-  "version": "2.0.0",
+  "name": "identity-authenticator-embedded-test",
+  "version": "1.0.0",
   "main": "none",
   "license": "MIT",
   "private": true,

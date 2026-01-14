@@ -43,6 +43,15 @@
             <small>Obtenha esta chave da sua sessão de autenticação</small>
           </div>
 
+          <div class="form-group">
+            <label for="endpoint_select">Ambiente</label>
+            <select id="endpoint_select">
+              <option value="https://app-workspaces-1.clicksign.dev/identity_authenticator">Staging</option>
+              <option value="http://localhost:3000">Local</option>
+            </select>
+            <small>Selecione o ambiente de destino para o widget</small>
+          </div>
+
           <div class="button-group">
             <button id="setButton" class="button primary" onclick="setWidget()">
               ▶️ Carregar Widget
@@ -86,6 +95,7 @@
     <script type="text/javascript">
       let widget,
         session_key_element = document.getElementById('session_key'),
+        endpoint_select = document.getElementById('endpoint_select'),
         modal_overlay = document.getElementById('modalOverlay'),
         modal_loading = document.getElementById('modalLoading'),
         modal_close = document.getElementById('modalClose'),
@@ -202,6 +212,7 @@
 
       function setWidget() {
         let session_key = session_key_element.value;
+        let endpoint = endpoint_select.value;
 
         if (!session_key || session_key.trim() === '') {
           alert('Por favor, insira uma chave de sessão de autenticação');
@@ -212,7 +223,10 @@
         try {
           setButtonLoading(true);
           updateStatus('Inicializando...', 'loading');
-          logEvent('Inicialização do Widget', { key: session_key.substring(0, 20) + '...' }, 'info');
+          logEvent('Inicialização do Widget', { 
+            key: session_key.substring(0, 20) + '...',
+            endpoint: endpoint
+          }, 'info');
 
           if (widget) {
             widget.unmount();
@@ -221,7 +235,7 @@
 
           widget = new Clicksign(session_key);
           widget.origin = window.origin;
-          widget.endpoint = 'http://localhost:3000';
+          widget.endpoint = endpoint;
 
           widget.mount('widget');
 
