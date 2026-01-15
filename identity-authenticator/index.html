@@ -188,7 +188,6 @@
       function openModal() {
         modal_overlay.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        logEvent('Modal Aberto', null, 'info');
       }
 
       function closeModal() {
@@ -200,7 +199,6 @@
         container_element.style.display = 'none';
         document.body.style.overflow = 'auto';
         updateStatus('Não Carregado', 'info');
-        logEvent('Modal Fechado', null, 'info');
       }
 
       // Close modal with ESC key
@@ -263,6 +261,7 @@
         widget.on('success', function(event) {
           debugEvent(event, 'success');
           updateStatus('Autenticado ✓', 'success');
+          closeModal();
         });
 
         widget.on('resized', function(event) {
