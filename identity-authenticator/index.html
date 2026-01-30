@@ -233,7 +233,7 @@
             logEvent('Widget Anterior Removido', null, 'info');
           }
 
-          widget = new Clicksign(session_key);
+          widget = new AuthSession(session_key);
           widget.origin = window.origin;
           widget.endpoint = endpoint;
 
