@@ -16,7 +16,6 @@
     </div>
 
     <div class="layout">
-      <!-- Configuration Panel -->
       <aside class="sidebar">
         <div class="card">
           <h2>⚙️ Configuração</h2>
@@ -49,7 +48,7 @@
               <option value="https://1.clicksign.dev/app/identity_authenticator">Staging 1</option>
               <option value="https://3.clicksign.dev/app/identity_authenticator">Staging 3</option>
               <option value="https://20.clicksign.dev/app/identity_authenticator">Staging 20</option>
-              <option value="http://localhost:3000">Local</option>
+              <option value="http://localhost:3200">Local</option>
             </select>
             <small>Selecione o ambiente de destino para o widget</small>
           </div>
@@ -63,7 +62,6 @@
 
       </aside>
 
-      <!-- Event Monitor (Main Content) -->
       <main class="content">
         <div class="card event-monitor-main">
           <div class="monitor-header">
@@ -122,7 +120,6 @@
       }
 
       function updateStatus(status, type = 'info') {
-        // Status updates are now tracked via event log only
         console.log(`Status: ${status} (${type})`);
       }
 
@@ -155,7 +152,6 @@
           eventItem.appendChild(dataDiv);
         }
         
-        // Remove placeholder
         const placeholder = event_log.querySelector('.info');
         if (placeholder && placeholder.textContent.includes('Aguardando')) {
           placeholder.remove();
@@ -163,7 +159,6 @@
         
         event_log.insertBefore(eventItem, event_log.firstChild);
         
-        // Limit to 50 events
         while (event_log.children.length > 50) {
           event_log.removeChild(event_log.lastChild);
         }
@@ -203,7 +198,6 @@
         updateStatus('Não Carregado', 'info');
       }
 
-      // Close modal with ESC key
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && modal_overlay.style.display === 'flex') {
           closeModal();
@@ -253,7 +247,6 @@
           setButtonLoading(false);
           updateStatus('Carregado - Abrindo Modal', 'success');
           
-          // Open modal only after widget is fully loaded
           openModal();
           modal_loading.style.display = 'none';
           container_element.style.display = 'block';
@@ -266,6 +259,12 @@
           closeModal();
         });
 
+        widget.on('failed', function(event) {
+          debugEvent(event, 'failed');
+          updateStatus('Falha no liveness', 'failed');
+          closeModal();
+        });
+
         widget.on('resized', function(event) {
           debugEvent(event, 'info');
         });
@@ -275,7 +274,6 @@
           setButtonLoading(false);
           updateStatus('Erro', 'error');
           
-          // Close modal on error
           if (modal_overlay.style.display === 'flex') {
             closeModal();
           }

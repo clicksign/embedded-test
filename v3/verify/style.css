@@ -367,7 +367,8 @@ button[disabled] {
   background: #f0fff4;
 }
 
-.event-item.error {
+.event-item.error,
+.event-item.failed {
   border-left-color: #f56565;
   background: #fff5f5;
 }
@@ -417,7 +418,8 @@ button[disabled] {
   color: #22543d;
 }
 
-.status-badge.error {
+.status-badge.error,
+.status-badge.failed {
   background: #fed7d7;
   color: #742a2a;
 }
