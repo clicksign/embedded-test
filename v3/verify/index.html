@@ -32,14 +32,14 @@
           </div>
 
           <div class="form-group">
-            <label for="session_key">Chave da Sessão de Autenticação</label>
+            <label for="transaction_key">Chave da Transação</label>
             <input 
               type="text" 
-              id="session_key" 
-              placeholder="Insira a chave da sessão aqui..."
+              id="transaction_key" 
+              placeholder="Insira a chave da transação aqui..."
               value="" 
             />
-            <small>Obtenha esta chave da sua sessão de autenticação</small>
+            <small>Obtenha esta chave da sua transação</small>
           </div>
 
           <div class="form-group">
@@ -94,7 +94,7 @@
 
     <script type="text/javascript">
       let transaction,
-        session_key_element = document.getElementById('session_key'),
+        transaction_key_element = document.getElementById('transaction_key'),
         endpoint_select = document.getElementById('endpoint_select'),
         modal_overlay = document.getElementById('modalOverlay'),
         modal_loading = document.getElementById('modalLoading'),
@@ -205,10 +205,10 @@
       });
 
       function setWidget() {
-        let session_key = session_key_element.value;
+        let transaction_key = transaction_key_element.value;
         let endpoint = endpoint_select.value;
 
-        if (!session_key || session_key.trim() === '') {
+        if (!transaction_key || transaction_key.trim() === '') {
           alert('Por favor, insira uma chave de sessão de autenticação');
           logEvent('Erro de Validação', { message: 'Chave de sessão é obrigatória' }, 'error');
           return;
@@ -218,7 +218,7 @@
           setButtonLoading(true);
           updateStatus('Inicializando...', 'loading');
           logEvent('Inicialização da Verificação', {
-            key: session_key.substring(0, 20) + '...',
+            key: transaction_key.substring(0, 20) + '...',
             endpoint: endpoint
           }, 'info');
 
@@ -227,7 +227,7 @@
             logEvent('Verificação Anterior Removida', null, 'info');
           }
 
-          transaction = new Verify(session_key);
+          transaction = new Verify(transaction_key);
           transaction.endpoint = endpoint;
 
           transaction.on('loaded', function(event) {
