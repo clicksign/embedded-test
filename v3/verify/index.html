@@ -2,15 +2,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Autenticação de Identidade - Ambiente de Testes do SDK</title>
-    <script src="./embedded.js"></script>
+    <title>Autenticação de Identidade (Verify) - Ambiente de Testes do SDK</title>
+    <script src="./verify.js"></script>
     <link href="./style.css" rel="stylesheet" />
   </head>
 
   <body>
     <div class="page-header">
       <div class="header-content">
-        <h1>🔐 SDK de Autenticação de Identidade (Liveness)</h1>
+        <h1>🔐 SDK de Autenticações </h1>
         <p class="subtitle">Teste e valide a autenticação biométrica de prova de vida integrada</p>
       </div>
     </div>
@@ -45,9 +45,9 @@
           <div class="form-group">
             <label for="endpoint_select">Ambiente</label>
             <select id="endpoint_select">
-              <option value="https://1.clicksign.dev/app/identity_authenticator">Staging 1</option>
-              <option value="https://3.clicksign.dev/app/identity_authenticator">Staging 3</option>
-              <option value="https://20.clicksign.dev/app/identity_authenticator">Staging 20</option>
+              <option value="https://1.clicksign.dev/app/verify">Staging 1</option>
+              <option value="https://3.clicksign.dev/app/verify">Staging 3</option>
+              <option value="https://20.clicksign.dev/app/verify">Staging 20</option>
               <option value="http://localhost:3200">Local</option>
             </select>
             <small>Selecione o ambiente de destino para o widget</small>
@@ -93,7 +93,7 @@
     </div>
 
     <script type="text/javascript">
-      let widget,
+      let transaction,
         session_key_element = document.getElementById('session_key'),
         endpoint_select = document.getElementById('endpoint_select'),
         modal_overlay = document.getElementById('modalOverlay'),
@@ -188,8 +188,8 @@
       }
 
       function closeModal() {
-        if (widget) {
-          widget.unmount();
+        if (transaction) {
+          transaction.unmount();
         }
         modal_overlay.style.display = 'none';
         modal_loading.style.display = 'flex';
@@ -217,21 +217,53 @@
         try {
           setButtonLoading(true);
           updateStatus('Inicializando...', 'loading');
-          logEvent('Inicialização do Widget', { 
+          logEvent('Inicialização da Verificação', {
             key: session_key.substring(0, 20) + '...',
             endpoint: endpoint
           }, 'info');
 
-          if (widget) {
-            widget.unmount();
-            logEvent('Widget Anterior Removido', null, 'info');
+          if (transaction) {
+            transaction.unmount();
+            logEvent('Verificação Anterior Removida', null, 'info');
           }
 
-          widget = new AuthSession(session_key);
-          widget.origin = window.origin;
-          widget.endpoint = endpoint;
+          transaction = new Verify(session_key);
+          transaction.endpoint = endpoint;
 
-          widget.start('widget');
+          transaction.on('loaded', function(event) {
+            debugEvent({ name: 'loaded', data: event }, 'success');
+            setButtonLoading(false);
+            updateStatus('Carregado - Abrindo Modal', 'success');
+
+            openModal();
+            modal_loading.style.display = 'none';
+            container_element.style.display = 'block';
+            updateStatus('Modal Aberto', 'success');
+          });
+
+          transaction.on('success', function(event) {
+            debugEvent({ name: 'success', data: event }, 'success');
+            updateStatus('Autenticado ✓', 'success');
+            closeModal();
+          });
+
+          transaction.on('failed', function(event) {
+            debugEvent({ name: 'failed', data: event }, 'failed');
+            updateStatus('Falha no liveness', 'failed');
+            closeModal();
+          });
+
+          transaction.on('error', function(event) {
+            debugEvent({ name: 'error', data: event }, 'error');
+            setButtonLoading(false);
+            updateStatus('Erro', 'error');
+
+            if (modal_overlay.style.display === 'flex') {
+              closeModal();
+            }
+          });
+
+          transaction.start('widget');
 
         } catch (error) {
           console.error('Erro:', error);
@@ -241,49 +273,6 @@
           return;
         }
 
-        widget.on('loaded', function(event) {
-          console.log('loaded', event);
-          debugEvent(event, 'success');
-          setButtonLoading(false);
-          updateStatus('Carregado - Abrindo Modal', 'success');
-          
-          openModal();
-          modal_loading.style.display = 'none';
-          container_element.style.display = 'block';
-          updateStatus('Modal Aberto', 'success');
-        });
-
-        widget.on('success', function(event) {
-          debugEvent(event, 'success');
-          updateStatus('Autenticado ✓', 'success');
-          closeModal();
-        });
-
-        widget.on('failed', function(event) {
-          debugEvent(event, 'failed');
-          updateStatus('Falha no liveness', 'failed');
-          closeModal();
-        });
-
-        widget.on('resized', function(event) {
-          debugEvent(event, 'info');
-        });
-
-        widget.on('error', function(event) {
-          debugEvent(event, 'error');
-          setButtonLoading(false);
-          updateStatus('Erro', 'error');
-          
-          if (modal_overlay.style.display === 'flex') {
-            closeModal();
-          }
-        });
-
-        widget.on('closed', function(event) {
-          debugEvent(event, 'info');
-          updateStatus('Fechado', 'info');
-          closeModal();
-        });
       }
 
       function removeWidget() {
