@@ -1,0 +1,284 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Autenticação de Identidade (Verify) - Ambiente de Testes do SDK</title>
+    <script src="./verify.js"></script>
+    <link href="./style.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div class="page-header">
+      <div class="header-content">
+        <h1>🔐 SDK de Autenticações </h1>
+        <p class="subtitle">Teste e valide a autenticação biométrica de prova de vida integrada</p>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="card">
+          <h2>⚙️ Configuração</h2>
+          
+          <div class="info-box">
+            <h3>Sobre este SDK</h3>
+            <p>Este widget permite verificação segura de identidade através de detecção biométrica de prova de vida. Os casos de uso incluem:</p>
+            <ul>
+              <li>Autenticação para assinatura de documentos</li>
+              <li>Verificação de identidade</li>
+              <li>Validação antifraude</li>
+              <li>Controle de acesso seguro</li>
+              <li><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></li>
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label for="transaction_key">Chave da Transação</label>
+            <input 
+              type="text" 
+              id="transaction_key" 
+              placeholder="Insira a chave da transação aqui..."
+              value="" 
+            />
+            <small>Obtenha esta chave da sua transação</small>
+          </div>
+
+          <div class="form-group">
+            <label for="endpoint_select">Ambiente</label>
+            <select id="endpoint_select">
+              <option value="https://1.clicksign.dev/app/verify">Staging 1</option>
+              <option value="https://3.clicksign.dev/app/verify">Staging 3</option>
+              <option value="https://20.clicksign.dev/app/verify">Staging 20</option>
+              <option value="http://localhost:3200">Local</option>
+            </select>
+            <small>Selecione o ambiente de destino para o widget</small>
+          </div>
+
+          <div class="button-group">
+            <button id="setButton" class="button primary" onclick="setWidget()">
+              ▶️ Carregar Widget
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+      <main class="content">
+        <div class="card event-monitor-main">
+          <div class="monitor-header">
+            <h2>📡 Monitor de Eventos do SDK</h2>
+            <button class="button small clear-btn" onclick="clearEvents()">Limpar</button>
+          </div>
+          <div id="eventLog" class="event-log">
+            <div class="event-item info">
+              <span class="event-time">--:--:--</span>
+              <span class="event-name">Aguardando eventos...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+      <div class="modal-container">
+        <button class="modal-close" id="modalClose" onclick="closeModal()">
+          <span>✕</span>
+        </button>
+        <div class="modal-loading" id="modalLoading">
+          <div class="spinner"></div>
+          <p>Carregando widget de autenticação...</p>
+        </div>
+        <div class="modal-content" id="widget"></div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      let transaction,
+        transaction_key_element = document.getElementById('transaction_key'),
+        endpoint_select = document.getElementById('endpoint_select'),
+        modal_overlay = document.getElementById('modalOverlay'),
+        modal_loading = document.getElementById('modalLoading'),
+        modal_close = document.getElementById('modalClose'),
+        container_element = document.getElementById('widget'),
+        event_log = document.getElementById('eventLog'),
+        load_button = document.getElementById('setButton');
+
+      let eventCount = 0;
+      const BUTTON_TEXT = {
+        default: '▶️ Carregar Widget',
+        loading: '⏳ Inicializando...'
+      };
+
+      function setButtonLoading(isLoading) {
+        if (isLoading) {
+          load_button.textContent = BUTTON_TEXT.loading;
+          load_button.disabled = true;
+        } else {
+          load_button.textContent = BUTTON_TEXT.default;
+          load_button.disabled = false;
+        }
+      }
+
+      function updateStatus(status, type = 'info') {
+        console.log(`Status: ${status} (${type})`);
+      }
+
+      function formatTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('pt-BR', { hour12: false });
+      }
+
+      function logEvent(eventName, eventData, type = 'info') {
+        eventCount++;
+        
+        const eventItem = document.createElement('div');
+        eventItem.className = `event-item ${type}`;
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'event-time';
+        timeSpan.textContent = formatTime();
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'event-name';
+        nameSpan.textContent = eventName;
+        
+        eventItem.appendChild(timeSpan);
+        eventItem.appendChild(nameSpan);
+        
+        if (eventData) {
+          const dataDiv = document.createElement('div');
+          dataDiv.className = 'event-data';
+          dataDiv.textContent = JSON.stringify(eventData, null, 2);
+          eventItem.appendChild(dataDiv);
+        }
+        
+        const placeholder = event_log.querySelector('.info');
+        if (placeholder && placeholder.textContent.includes('Aguardando')) {
+          placeholder.remove();
+        }
+        
+        event_log.insertBefore(eventItem, event_log.firstChild);
+        
+        while (event_log.children.length > 50) {
+          event_log.removeChild(event_log.lastChild);
+        }
+      }
+
+      function clearEvents() {
+        event_log.innerHTML = `
+          <div class="event-item info">
+            <span class="event-time">--:--:--</span>
+            <span class="event-name">Log de eventos limpo</span>
+          </div>
+        `;
+        eventCount = 0;
+      }
+
+      function debugEvent(event, type = 'info') {
+        const eventName = event.name || event;
+        console.info(`Event: ${eventName}`);
+        if (event.data) console.table(event.data);
+        
+        logEvent(eventName, event.data, type);
+      }
+
+      function openModal() {
+        modal_overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        if (transaction) {
+          transaction.unmount();
+        }
+        modal_overlay.style.display = 'none';
+        modal_loading.style.display = 'flex';
+        container_element.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        updateStatus('Não Carregado', 'info');
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal_overlay.style.display === 'flex') {
+          closeModal();
+        }
+      });
+
+      function setWidget() {
+        let transaction_key = transaction_key_element.value;
+        let endpoint = endpoint_select.value;
+
+        if (!transaction_key || transaction_key.trim() === '') {
+          alert('Por favor, insira uma chave de sessão de autenticação');
+          logEvent('Erro de Validação', { message: 'Chave de sessão é obrigatória' }, 'error');
+          return;
+        }
+
+        try {
+          setButtonLoading(true);
+          updateStatus('Inicializando...', 'loading');
+          logEvent('Inicialização da Verificação', {
+            key: transaction_key.substring(0, 20) + '...',
+            endpoint: endpoint
+          }, 'info');
+
+          if (transaction) {
+            transaction.unmount();
+            logEvent('Verificação Anterior Removida', null, 'info');
+          }
+
+          transaction = new Verify(transaction_key);
+          transaction.endpoint = endpoint;
+
+          transaction.on('loaded', function(event) {
+            debugEvent({ name: 'loaded', data: event }, 'success');
+            setButtonLoading(false);
+            updateStatus('Carregado - Abrindo Modal', 'success');
+
+            openModal();
+            modal_loading.style.display = 'none';
+            container_element.style.display = 'block';
+            updateStatus('Modal Aberto', 'success');
+          });
+
+          transaction.on('success', function(event) {
+            debugEvent({ name: 'success', data: event }, 'success');
+            updateStatus('Autenticado ✓', 'success');
+            closeModal();
+          });
+
+          transaction.on('failed', function(event) {
+            debugEvent({ name: 'failed', data: event }, 'failed');
+            updateStatus('Falha no liveness', 'failed');
+            closeModal();
+          });
+
+          transaction.on('error', function(event) {
+            debugEvent({ name: 'error', data: event }, 'error');
+            setButtonLoading(false);
+            updateStatus('Erro', 'error');
+
+            if (modal_overlay.style.display === 'flex') {
+              closeModal();
+            }
+          });
+
+          transaction.start('widget');
+
+        } catch (error) {
+          console.error('Erro:', error);
+          setButtonLoading(false);
+          updateStatus('Erro', 'error');
+          logEvent('Erro ao Montar', { error: error.message }, 'error');
+          return;
+        }
+
+      }
+
+      function removeWidget() {
+        closeModal();
+      }
+    </script>
+  </body>
+</html>
+
