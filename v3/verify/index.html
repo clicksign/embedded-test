@@ -23,23 +23,23 @@
           <div class="info-box">
             <h3>Como usar</h3>
             <ol>
-              <li>Insira seu token de acesso da API</li>
+              <li>Crie uma transação via API</li>
+              <li>Insira o ID da transação abaixo</li>
               <li>Selecione o ambiente desejado</li>
-              <li>Edite o corpo da requisição se necessário</li>
-              <li>Clique em "Nova captura" para criar uma transação e iniciar a verificação</li>
+              <li>Clique em "Carregar Widget" para iniciar a verificação</li>
             </ol>
             <p><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></p>
           </div>
 
           <div class="form-group">
-            <label for="api_token">Token de Acesso da API</label>
+            <label for="transaction_key">Chave da Transação</label>
             <input 
-              type="password" 
-              id="api_token" 
-              placeholder="Insira seu token de acesso aqui..."
+              type="text" 
+              id="transaction_key" 
+              placeholder="Insira a chave da transação aqui..."
               value="" 
             />
-            <small>Token de autenticação para criar transações</small>
+            <small>Obtenha esta chave da sua transação</small>
           </div>
 
           <div class="form-group">
@@ -55,15 +55,9 @@
             <small>Selecione o ambiente de destino para o widget</small>
           </div>
 
-          <div class="form-group">
-            <label for="request_body">Corpo da Requisição</label>
-            <textarea id="request_body" rows="8"></textarea>
-            <small>JSON enviado no POST /api/v1/transactions</small>
-          </div>
-
           <div class="button-group">
-            <button id="setButton" class="button primary">
-              Nova captura
+            <button id="setButton" class="button primary" onclick="setWidget()">
+              ▶️ Carregar Widget
             </button>
           </div>
         </div>
@@ -88,9 +82,6 @@
 
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
       <div class="modal-container">
-        <button class="modal-close" id="modalClose" onclick="closeModal()">
-          <span>✕</span>
-        </button>
         <div class="modal-loading" id="modalLoading">
           <div class="spinner"></div>
           <p>Carregando widget de autenticação...</p>
@@ -100,55 +91,30 @@
     </div>
 
     <script type="text/javascript">
-      const DEFAULT_REQUEST_BODY = JSON.stringify({
-        authentication: 'liveness',
-        metadata: {
-          person_name: '',
-          person_documentation: ''
-        }
-      }, null, 2);
-
       let transaction,
         endpoint_select = document.getElementById('endpoint_select'),
-        request_body_element = document.getElementById('request_body'),
+        transaction_key_element = document.getElementById('transaction_key'),
         modal_overlay = document.getElementById('modalOverlay'),
         modal_loading = document.getElementById('modalLoading'),
-        modal_close = document.getElementById('modalClose'),
         container_element = document.getElementById('widget'),
         event_log = document.getElementById('eventLog'),
         load_button = document.getElementById('setButton');
 
       let eventCount = 0;
       const BUTTON_TEXT = {
-        default: 'Nova captura',
-        loading: 'Criando transação...'
+        default: '▶️ Carregar Widget',
+        loading: 'Carregando...'
       };
 
-      // --- localStorage restore ---
       const savedEnv = localStorage.getItem('verify_environment');
       if (savedEnv) {
         const match = Array.from(endpoint_select.options).find(o => o.value === savedEnv);
         if (match) endpoint_select.value = savedEnv;
       }
 
-      const savedBody = localStorage.getItem('verify_request_body');
-      request_body_element.value = savedBody || DEFAULT_REQUEST_BODY;
-
-      // --- localStorage persist ---
       endpoint_select.addEventListener('change', function() {
         localStorage.setItem('verify_environment', endpoint_select.value);
       });
-
-      request_body_element.addEventListener('input', function() {
-        try {
-          JSON.parse(request_body_element.value);
-          localStorage.setItem('verify_request_body', request_body_element.value);
-        } catch (e) {
-          // only persist valid JSON
-        }
-      });
-
-      load_button.addEventListener('click', () => setWidget());
 
       function setButtonLoading(isLoading) {
         if (isLoading) {
@@ -245,50 +211,19 @@
         }
       });
 
-      async function setWidget() {
-        const apiToken = document.getElementById('api_token').value;
-        const selected = endpoint_select.options[endpoint_select.selectedIndex];
-        const apiUrl = selected.dataset.api;
-        const widgetUrl = selected.value;
-        const bodyText = request_body_element.value;
+      function setWidget() {
+        const transactionKey = transaction_key_element.value;
+        const widgetUrl = endpoint_select.value;
 
-        if (!apiToken || apiToken.trim() === '') {
-          alert('Por favor, insira o token de acesso da API');
-          logEvent('Erro de Validação', { message: 'Token de acesso é obrigatório' }, 'error');
-          return;
-        }
-
-        let body;
-        try {
-          body = JSON.parse(bodyText);
-        } catch (e) {
-          alert('JSON do corpo da requisição é inválido');
-          logEvent('Erro de Validação', { message: 'JSON inválido' }, 'error');
+        if (!transactionKey || transactionKey.trim() === '') {
+          alert('Por favor, insira a chave da transação');
+          logEvent('Erro de Validação', { message: 'Chave da transação é obrigatória' }, 'error');
           return;
         }
 
         try {
           setButtonLoading(true);
-          updateStatus('Criando transação...', 'loading');
-          logEvent('Criando Transação', { endpoint: apiUrl }, 'info');
-
-          const response = await fetch(`${apiUrl}/api/v1/transactions`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          });
-
-          if (!response.ok) {
-            throw new Error(`API retornou status ${response.status}`);
-          }
-
-          const data = await response.json();
-          const transactionKey = data.id;
-
-          logEvent('Transação Criada', { id: transactionKey }, 'success');
+          logEvent('Carregando Widget', { endpoint: widgetUrl, key: transactionKey }, 'info');
 
           if (transaction) {
             transaction.unmount();
