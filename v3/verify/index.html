@@ -80,6 +80,8 @@
       </main>
     </div>
 
+    <div id="toastContainer"></div>
+
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
       <div class="modal-container">
         <div class="modal-content" id="widget"></div>
@@ -201,7 +203,40 @@
         return wrapper;
       }
 
+      const toast_container = document.getElementById('toastContainer');
+      const MAX_TOASTS = 5;
+      const TOAST_DURATION = 4000;
+
+      function showToast(eventName, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'toast-name';
+        nameSpan.textContent = eventName;
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'toast-time';
+        timeSpan.textContent = formatTime();
+
+        toast.appendChild(nameSpan);
+        toast.appendChild(timeSpan);
+        toast_container.appendChild(toast);
+
+        while (toast_container.children.length > MAX_TOASTS) {
+          toast_container.removeChild(toast_container.firstChild);
+        }
+
+        setTimeout(function() {
+          toast.classList.add('toast-out');
+          toast.addEventListener('animationend', function() {
+            toast.remove();
+          });
+        }, TOAST_DURATION);
+      }
+
       function logEvent(eventName, eventData, type = 'info') {
+        showToast(eventName, type);
         eventCount++;
         
         const eventItem = document.createElement('div');
@@ -293,11 +328,9 @@
 
         try {
           setButtonLoading(true);
-          logEvent('Carregando Widget', { endpoint: widgetUrl, key: transactionKey }, 'info');
 
           if (transaction) {
             transaction.unmount();
-            logEvent('Verificação Anterior Removida', null, 'info');
           }
 
           transaction = new Verify(transactionKey);
