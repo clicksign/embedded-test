@@ -57,7 +57,7 @@
 
           <div class="button-group">
             <button id="setButton" class="button primary" onclick="setWidget()">
-              ▶️ Carregar Widget
+              Carregar Widget
             </button>
           </div>
         </div>
@@ -82,10 +82,6 @@
 
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
       <div class="modal-container">
-        <div class="modal-loading" id="modalLoading">
-          <div class="spinner"></div>
-          <p>Carregando widget de autenticação...</p>
-        </div>
         <div class="modal-content" id="widget"></div>
       </div>
     </div>
@@ -95,14 +91,13 @@
         endpoint_select = document.getElementById('endpoint_select'),
         transaction_key_element = document.getElementById('transaction_key'),
         modal_overlay = document.getElementById('modalOverlay'),
-        modal_loading = document.getElementById('modalLoading'),
         container_element = document.getElementById('widget'),
         event_log = document.getElementById('eventLog'),
         load_button = document.getElementById('setButton');
 
       let eventCount = 0;
       const BUTTON_TEXT = {
-        default: '▶️ Carregar Widget',
+        default: 'Carregar Widget',
         loading: 'Carregando...'
       };
 
@@ -135,6 +130,77 @@
         return now.toLocaleTimeString('pt-BR', { hour12: false });
       }
 
+      function decodeJwt(token) {
+        try {
+          const parts = token.split('.');
+          if (parts.length !== 3) return null;
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          return { header: JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/'))), payload };
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function isJwt(value) {
+        return typeof value === 'string' && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.trim());
+      }
+
+      function findJwtValues(data) {
+        const tokens = [];
+        if (isJwt(data)) {
+          tokens.push(data);
+        } else if (data && typeof data === 'object') {
+          for (const value of Object.values(data)) {
+            if (isJwt(value)) tokens.push(value);
+          }
+        }
+        return tokens;
+      }
+
+      function createJwtDecode(token) {
+        const decoded = decodeJwt(token);
+        if (!decoded) return null;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'jwt-preview';
+
+        const toggle = document.createElement('button');
+        toggle.className = 'button small secondary jwt-toggle';
+        toggle.textContent = 'Decodificar JWT';
+        wrapper.appendChild(toggle);
+
+        const details = document.createElement('div');
+        details.className = 'jwt-details';
+        details.style.display = 'none';
+
+        const headerSection = document.createElement('div');
+        headerSection.className = 'jwt-section';
+        headerSection.innerHTML = '<span class="jwt-label">Header</span>';
+        const headerValue = document.createElement('pre');
+        headerValue.className = 'jwt-payload';
+        headerValue.textContent = JSON.stringify(decoded.header, null, 2);
+        headerSection.appendChild(headerValue);
+        details.appendChild(headerSection);
+
+        const payloadSection = document.createElement('div');
+        payloadSection.className = 'jwt-section';
+        payloadSection.innerHTML = '<span class="jwt-label">Payload</span>';
+        const payloadValue = document.createElement('pre');
+        payloadValue.className = 'jwt-payload';
+        payloadValue.textContent = JSON.stringify(decoded.payload, null, 2);
+        payloadSection.appendChild(payloadValue);
+        details.appendChild(payloadSection);
+
+        toggle.addEventListener('click', function() {
+          const isOpen = details.style.display !== 'none';
+          details.style.display = isOpen ? 'none' : 'block';
+          toggle.textContent = isOpen ? 'Decodificar JWT' : 'Recolher JWT';
+        });
+
+        wrapper.appendChild(details);
+        return wrapper;
+      }
+
       function logEvent(eventName, eventData, type = 'info') {
         eventCount++;
         
@@ -157,6 +223,12 @@
           dataDiv.className = 'event-data';
           dataDiv.textContent = JSON.stringify(eventData, null, 2);
           eventItem.appendChild(dataDiv);
+
+          const jwtTokens = findJwtValues(eventData);
+          for (const token of jwtTokens) {
+            const jwtDecode = createJwtDecode(token);
+            if (jwtDecode) eventItem.appendChild(jwtDecode);
+          }
         }
         
         const placeholder = event_log.querySelector('.info');
@@ -199,8 +271,6 @@
           transaction.unmount();
         }
         modal_overlay.style.display = 'none';
-        modal_loading.style.display = 'flex';
-        container_element.style.display = 'none';
         document.body.style.overflow = 'auto';
         updateStatus('Não Carregado', 'info');
       }
@@ -233,15 +303,12 @@
           transaction = new Verify(transactionKey);
           transaction.endpoint = widgetUrl;
 
+          openModal();
+
           transaction.on('loaded', function(event) {
             debugEvent({ name: 'loaded', data: event }, 'success');
             setButtonLoading(false);
-            updateStatus('Carregado - Abrindo Modal', 'success');
-
-            openModal();
-            modal_loading.style.display = 'none';
-            container_element.style.display = 'block';
-            updateStatus('Modal Aberto', 'success');
+            updateStatus('Carregado', 'success');
           });
 
           transaction.on('success', function(event) {
@@ -253,6 +320,12 @@
           transaction.on('failed', function(event) {
             debugEvent({ name: 'failed', data: event }, 'failed');
             updateStatus('Falha no liveness', 'failed');
+            closeModal();
+          });
+
+          transaction.on('finished', function(event) {
+            debugEvent({ name: 'finished', data: event }, 'info');
+            updateStatus('Finalizado', 'info');
             closeModal();
           });
 
