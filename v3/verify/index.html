@@ -21,42 +21,49 @@
           <h2>⚙️ Configuração</h2>
           
           <div class="info-box">
-            <h3>Sobre este SDK</h3>
-            <p>Este widget permite verificação segura de identidade através de detecção biométrica de prova de vida. Os casos de uso incluem:</p>
-            <ul>
-              <li>Autenticação para assinatura de documentos</li>
-              <li>Verificação de identidade</li>
-              <li>Validação antifraude</li>
-              <li>Controle de acesso seguro</li>
-              <li><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></li>
-            </ul>
+            <h3>Como usar</h3>
+            <ol>
+              <li>Insira seu token de acesso da API</li>
+              <li>Selecione o ambiente desejado</li>
+              <li>Edite o corpo da requisição se necessário</li>
+              <li>Clique em "Nova captura" para criar uma transação e iniciar a verificação</li>
+            </ol>
+            <p><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></p>
           </div>
 
           <div class="form-group">
-            <label for="transaction_key">Chave da Transação</label>
+            <label for="api_token">Token de Acesso da API</label>
             <input 
-              type="text" 
-              id="transaction_key" 
-              placeholder="Insira a chave da transação aqui..."
+              type="password" 
+              id="api_token" 
+              placeholder="Insira seu token de acesso aqui..."
               value="" 
             />
-            <small>Obtenha esta chave da sua transação</small>
+            <small>Token de autenticação para criar transações</small>
           </div>
 
           <div class="form-group">
             <label for="endpoint_select">Ambiente</label>
             <select id="endpoint_select">
-              <option value="https://1.clicksign.dev/app/verify">Staging 1</option>
-              <option value="https://3.clicksign.dev/app/verify">Staging 3</option>
-              <option value="https://20.clicksign.dev/app/verify">Staging 20</option>
-              <option value="http://localhost:3200">Local</option>
+              <option value="https://1.clicksign.dev" data-api="https://api-verify-6.clicksign.dev">Staging 1</option>
+              <option value="https://3.clicksign.dev" data-api="https://api-verify-6.clicksign.dev">Staging 3</option>
+              <option value="https://20.clicksign.dev" data-api="https://api-verify-6.clicksign.dev">Staging 20</option>
+              <option value="http://localhost:3200" data-api="http://127.0.0.1:8081">Local</option>
+              <option value="https://sandbox.clicksign.com" data-api="https://api-verify-sandbox.clicksign.com" selected>Sandbox</option>
+              <option value="https://app.clicksign.com" data-api="https://api-verify.clicksign.com">Production</option>
             </select>
             <small>Selecione o ambiente de destino para o widget</small>
           </div>
 
+          <div class="form-group">
+            <label for="request_body">Corpo da Requisição</label>
+            <textarea id="request_body" rows="8"></textarea>
+            <small>JSON enviado no POST /api/v1/transactions</small>
+          </div>
+
           <div class="button-group">
-            <button id="setButton" class="button primary" onclick="setWidget()">
-              ▶️ Carregar Widget
+            <button id="setButton" class="button primary">
+              Nova captura
             </button>
           </div>
         </div>
@@ -93,9 +100,17 @@
     </div>
 
     <script type="text/javascript">
+      const DEFAULT_REQUEST_BODY = JSON.stringify({
+        authentication: 'liveness',
+        metadata: {
+          person_name: '',
+          person_documentation: ''
+        }
+      }, null, 2);
+
       let transaction,
-        transaction_key_element = document.getElementById('transaction_key'),
         endpoint_select = document.getElementById('endpoint_select'),
+        request_body_element = document.getElementById('request_body'),
         modal_overlay = document.getElementById('modalOverlay'),
         modal_loading = document.getElementById('modalLoading'),
         modal_close = document.getElementById('modalClose'),
@@ -105,9 +120,35 @@
 
       let eventCount = 0;
       const BUTTON_TEXT = {
-        default: '▶️ Carregar Widget',
-        loading: '⏳ Inicializando...'
+        default: 'Nova captura',
+        loading: 'Criando transação...'
       };
+
+      // --- localStorage restore ---
+      const savedEnv = localStorage.getItem('verify_environment');
+      if (savedEnv) {
+        const match = Array.from(endpoint_select.options).find(o => o.value === savedEnv);
+        if (match) endpoint_select.value = savedEnv;
+      }
+
+      const savedBody = localStorage.getItem('verify_request_body');
+      request_body_element.value = savedBody || DEFAULT_REQUEST_BODY;
+
+      // --- localStorage persist ---
+      endpoint_select.addEventListener('change', function() {
+        localStorage.setItem('verify_environment', endpoint_select.value);
+      });
+
+      request_body_element.addEventListener('input', function() {
+        try {
+          JSON.parse(request_body_element.value);
+          localStorage.setItem('verify_request_body', request_body_element.value);
+        } catch (e) {
+          // only persist valid JSON
+        }
+      });
+
+      load_button.addEventListener('click', () => setWidget());
 
       function setButtonLoading(isLoading) {
         if (isLoading) {
@@ -204,31 +245,58 @@
         }
       });
 
-      function setWidget() {
-        let transaction_key = transaction_key_element.value;
-        let endpoint = endpoint_select.value;
+      async function setWidget() {
+        const apiToken = document.getElementById('api_token').value;
+        const selected = endpoint_select.options[endpoint_select.selectedIndex];
+        const apiUrl = selected.dataset.api;
+        const widgetUrl = selected.value;
+        const bodyText = request_body_element.value;
 
-        if (!transaction_key || transaction_key.trim() === '') {
-          alert('Por favor, insira uma chave de sessão de autenticação');
-          logEvent('Erro de Validação', { message: 'Chave de sessão é obrigatória' }, 'error');
+        if (!apiToken || apiToken.trim() === '') {
+          alert('Por favor, insira o token de acesso da API');
+          logEvent('Erro de Validação', { message: 'Token de acesso é obrigatório' }, 'error');
+          return;
+        }
+
+        let body;
+        try {
+          body = JSON.parse(bodyText);
+        } catch (e) {
+          alert('JSON do corpo da requisição é inválido');
+          logEvent('Erro de Validação', { message: 'JSON inválido' }, 'error');
           return;
         }
 
         try {
           setButtonLoading(true);
-          updateStatus('Inicializando...', 'loading');
-          logEvent('Inicialização da Verificação', {
-            key: transaction_key.substring(0, 20) + '...',
-            endpoint: endpoint
-          }, 'info');
+          updateStatus('Criando transação...', 'loading');
+          logEvent('Criando Transação', { endpoint: apiUrl }, 'info');
+
+          const response = await fetch(`${apiUrl}/api/v1/transactions`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          if (!response.ok) {
+            throw new Error(`API retornou status ${response.status}`);
+          }
+
+          const data = await response.json();
+          const transactionKey = data.id;
+
+          logEvent('Transação Criada', { id: transactionKey }, 'success');
 
           if (transaction) {
             transaction.unmount();
             logEvent('Verificação Anterior Removida', null, 'info');
           }
 
-          transaction = new Verify(transaction_key);
-          transaction.endpoint = endpoint;
+          transaction = new Verify(transactionKey);
+          transaction.endpoint = widgetUrl;
 
           transaction.on('loaded', function(event) {
             debugEvent({ name: 'loaded', data: event }, 'success');
@@ -269,10 +337,8 @@
           console.error('Erro:', error);
           setButtonLoading(false);
           updateStatus('Erro', 'error');
-          logEvent('Erro ao Montar', { error: error.message }, 'error');
-          return;
+          logEvent('Erro', { message: error.message }, 'error');
         }
-
       }
 
       function removeWidget() {

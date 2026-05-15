@@ -124,7 +124,8 @@ h3 {
   color: #4a5568;
 }
 
-.info-box ul {
+.info-box ul,
+.info-box ol {
   margin: 0;
   padding-left: 20px;
   font-size: 14px;
@@ -148,6 +149,8 @@ label {
 }
 
 input[type=text],
+input[type=password],
+textarea,
 select {
   background: white;
   border: 2px solid #e2e8f0;
@@ -160,14 +163,25 @@ select {
 }
 
 input[type=text]:focus,
+input[type=password]:focus,
+textarea:focus,
 select:focus {
   outline: none;
   border-color: #f25924;
   box-shadow: 0 0 0 3px rgba(242, 89, 36, 0.1);
 }
 
-input[type=text]::placeholder {
+input[type=text]::placeholder,
+input[type=password]::placeholder,
+textarea::placeholder {
   color: #a0aec0;
+}
+
+textarea {
+  resize: vertical;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 select {
