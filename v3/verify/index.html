@@ -59,6 +59,9 @@
             <button id="setButton" class="button primary" onclick="setWidget()">
               Carregar Widget
             </button>
+            <button id="configButton" class="button secondary" onclick="openConfigModal()">
+              Configurar
+            </button>
           </div>
         </div>
 
@@ -88,11 +91,28 @@
       </div>
     </div>
 
+    <div class="modal-overlay config-modal-overlay" id="configModalOverlay" style="display: none;">
+      <div class="config-modal" role="dialog" aria-modal="true" aria-labelledby="configModalTitle">
+        <h3 id="configModalTitle">Configuração customizada do Verify</h3>
+        <p class="config-modal-help">
+          Use JSON válido. Todos os campos são opcionais e serão aplicados ao carregar o widget.
+        </p>
+        <textarea id="configTextarea" spellcheck="false"></textarea>
+        <div class="config-modal-actions">
+          <button class="button secondary" onclick="closeConfigModal()">Cancelar</button>
+          <button class="button secondary" onclick="resetConfigDraft()">Reset</button>
+          <button class="button primary" onclick="saveConfig()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
     <script type="text/javascript">
       let transaction,
         endpoint_select = document.getElementById('endpoint_select'),
         transaction_key_element = document.getElementById('transaction_key'),
         modal_overlay = document.getElementById('modalOverlay'),
+        config_modal_overlay = document.getElementById('configModalOverlay'),
+        config_textarea = document.getElementById('configTextarea'),
         container_element = document.getElementById('widget'),
         event_log = document.getElementById('eventLog'),
         load_button = document.getElementById('setButton');
@@ -102,6 +122,21 @@
         default: 'Carregar Widget',
         loading: 'Carregando...'
       };
+      const VERIFY_CONFIG_STORAGE_KEY = 'verify_custom_config';
+      const DEFAULT_VERIFY_CONFIG_TEMPLATE = JSON.stringify(
+        {
+          locale: 'pt-BR',
+          custom: {
+            backgroundColor: '',
+            textColor: '',
+            buttonTextColor: '',
+            buttonBackgroundColor: '',
+            ellipseBorderColor: ''
+          }
+        },
+        null,
+        2
+      );
 
       const savedEnv = localStorage.getItem('verify_environment');
       if (savedEnv) {
@@ -112,6 +147,105 @@
       endpoint_select.addEventListener('change', function() {
         localStorage.setItem('verify_environment', endpoint_select.value);
       });
+
+      function parseConfigText(configText) {
+        const parsed = JSON.parse(configText);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('A configuração deve ser um objeto JSON');
+        }
+        return parsed;
+      }
+
+      function getStoredVerifyConfig() {
+        const raw = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+        if (!raw) return null;
+        return parseConfigText(raw);
+      }
+
+      function buildVerifyOptions(rawConfig) {
+        if (!rawConfig || typeof rawConfig !== 'object') return null;
+
+        const options = {};
+        if (typeof rawConfig.locale === 'string' && rawConfig.locale.trim() !== '') {
+          options.locale = rawConfig.locale.trim();
+        }
+
+        const customSource = rawConfig.custom;
+        const allowedCustomKeys = [
+          'backgroundColor',
+          'textColor',
+          'buttonTextColor',
+          'buttonBackgroundColor',
+          'ellipseBorderColor'
+        ];
+
+        if (customSource && typeof customSource === 'object' && !Array.isArray(customSource)) {
+          const custom = {};
+
+          for (const key of allowedCustomKeys) {
+            const value = customSource[key];
+            if (typeof value === 'string' && value.trim() !== '') {
+              custom[key] = value.trim();
+            }
+          }
+
+          if (Object.keys(custom).length > 0) {
+            options.custom = custom;
+          }
+        }
+
+        return Object.keys(options).length > 0 ? options : null;
+      }
+
+      function ensureValidStoredConfig() {
+        const raw = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+        if (!raw) return;
+
+        try {
+          parseConfigText(raw);
+        } catch (error) {
+          localStorage.setItem(VERIFY_CONFIG_STORAGE_KEY, DEFAULT_VERIFY_CONFIG_TEMPLATE);
+        }
+      }
+
+      function openConfigModal() {
+        config_textarea.value = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY) || DEFAULT_VERIFY_CONFIG_TEMPLATE;
+        config_modal_overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        config_textarea.focus();
+      }
+
+      function hasUnsavedChanges() {
+        const stored = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY) || DEFAULT_VERIFY_CONFIG_TEMPLATE;
+        return config_textarea.value.trim() !== stored.trim();
+      }
+
+      function closeConfigModal(forceClose = false) {
+        if (!forceClose && hasUnsavedChanges()) {
+          const confirmed = window.confirm('Você tem alterações não salvas. Deseja descartar?');
+          if (!confirmed) return;
+        }
+        config_modal_overlay.style.display = 'none';
+        document.body.style.overflow = modal_overlay.style.display === 'flex' ? 'hidden' : 'auto';
+      }
+
+      function resetConfigDraft() {
+        config_textarea.value = DEFAULT_VERIFY_CONFIG_TEMPLATE;
+      }
+
+      function saveConfig() {
+        try {
+          const parsed = parseConfigText(config_textarea.value);
+          localStorage.setItem(VERIFY_CONFIG_STORAGE_KEY, JSON.stringify(parsed, null, 2));
+          closeConfigModal(true);
+          return true;
+        } catch (error) {
+          alert(`JSON inválido: ${error.message}`);
+          return false;
+        }
+      }
+
+      ensureValidStoredConfig();
 
       function setButtonLoading(isLoading) {
         if (isLoading) {
@@ -311,6 +445,11 @@
       }
 
       document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && config_modal_overlay.style.display === 'flex') {
+          closeConfigModal();
+          return;
+        }
+
         if (e.key === 'Escape' && modal_overlay.style.display === 'flex') {
           closeModal();
         }
@@ -322,18 +461,31 @@
 
         if (!transactionKey || transactionKey.trim() === '') {
           alert('Por favor, insira a chave da transação');
-          logEvent('Erro de Validação', { message: 'Chave da transação é obrigatória' }, 'error');
           return;
         }
 
         try {
           setButtonLoading(true);
 
+          let verifyOptions = null;
+          const rawStoredConfig = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+          if (rawStoredConfig) {
+            try {
+              const storedConfig = getStoredVerifyConfig();
+              verifyOptions = buildVerifyOptions(storedConfig);
+            } catch (configError) {
+              setButtonLoading(false);
+              alert(`JSON inválido na configuração: ${configError.message}`);
+              openConfigModal();
+              return;
+            }
+          }
+
           if (transaction) {
             transaction.unmount();
           }
 
-          transaction = new Verify(transactionKey);
+          transaction = verifyOptions ? new Verify(transactionKey, verifyOptions) : new Verify(transactionKey);
           transaction.endpoint = widgetUrl;
 
           openModal();
@@ -385,6 +537,12 @@
       function removeWidget() {
         closeModal();
       }
+
+      config_modal_overlay.addEventListener('click', function(event) {
+        if (event.target === config_modal_overlay) {
+          closeConfigModal();
+        }
+      });
     </script>
   </body>
 </html>
