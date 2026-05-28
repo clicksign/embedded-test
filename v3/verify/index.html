@@ -21,15 +21,14 @@
           <h2>⚙️ Configuração</h2>
           
           <div class="info-box">
-            <h3>Sobre este SDK</h3>
-            <p>Este widget permite verificação segura de identidade através de detecção biométrica de prova de vida. Os casos de uso incluem:</p>
-            <ul>
-              <li>Autenticação para assinatura de documentos</li>
-              <li>Verificação de identidade</li>
-              <li>Validação antifraude</li>
-              <li>Controle de acesso seguro</li>
-              <li><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></li>
-            </ul>
+            <h3>Como usar</h3>
+            <ol>
+              <li>Crie uma transação via API</li>
+              <li>Insira o ID da transação abaixo</li>
+              <li>Selecione o ambiente desejado</li>
+              <li>Clique em "Carregar Widget" para iniciar a verificação</li>
+            </ol>
+            <p><a href="https://github.com/clicksign/embedded?tab=readme-ov-file#autenticações-v3-beta" target="_blank">Documentação</a></p>
           </div>
 
           <div class="form-group">
@@ -46,17 +45,22 @@
           <div class="form-group">
             <label for="endpoint_select">Ambiente</label>
             <select id="endpoint_select">
-              <option value="https://1.clicksign.dev/app/verify">Staging 1</option>
-              <option value="https://3.clicksign.dev/app/verify">Staging 3</option>
-              <option value="https://20.clicksign.dev/app/verify">Staging 20</option>
+              <option value="https://1.clicksign.dev">Staging 1</option>
+              <option value="https://3.clicksign.dev">Staging 3</option>
+              <option value="https://20.clicksign.dev">Staging 20</option>
               <option value="http://localhost:3200">Local</option>
+              <option value="https://sandbox.clicksign.com" selected>Sandbox</option>
+              <option value="https://app.clicksign.com">Production</option>
             </select>
             <small>Selecione o ambiente de destino para o widget</small>
           </div>
 
           <div class="button-group">
             <button id="setButton" class="button primary" onclick="setWidget()">
-              ▶️ Carregar Widget
+              Carregar Widget
+            </button>
+            <button id="configButton" class="button secondary" onclick="openConfigModal()">
+              Configurar
             </button>
           </div>
         </div>
@@ -79,35 +83,169 @@
       </main>
     </div>
 
+    <div id="toastContainer"></div>
+
     <div class="modal-overlay" id="modalOverlay" style="display: none;">
       <div class="modal-container">
-        <button class="modal-close" id="modalClose" onclick="closeModal()">
-          <span>✕</span>
-        </button>
-        <div class="modal-loading" id="modalLoading">
-          <div class="spinner"></div>
-          <p>Carregando widget de autenticação...</p>
-        </div>
         <div class="modal-content" id="widget"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay config-modal-overlay" id="configModalOverlay" style="display: none;">
+      <div class="config-modal" role="dialog" aria-modal="true" aria-labelledby="configModalTitle">
+        <h3 id="configModalTitle">Configuração customizada do Verify</h3>
+        <p class="config-modal-help">
+          Use JSON válido. Todos os campos são opcionais e serão aplicados ao carregar o widget.
+        </p>
+        <textarea id="configTextarea" spellcheck="false"></textarea>
+        <div class="config-modal-actions">
+          <button class="button secondary" onclick="closeConfigModal()">Cancelar</button>
+          <button class="button secondary" onclick="resetConfigDraft()">Reset</button>
+          <button class="button primary" onclick="saveConfig()">Salvar</button>
+        </div>
       </div>
     </div>
 
     <script type="text/javascript">
       let transaction,
-        transaction_key_element = document.getElementById('transaction_key'),
         endpoint_select = document.getElementById('endpoint_select'),
+        transaction_key_element = document.getElementById('transaction_key'),
         modal_overlay = document.getElementById('modalOverlay'),
-        modal_loading = document.getElementById('modalLoading'),
-        modal_close = document.getElementById('modalClose'),
+        config_modal_overlay = document.getElementById('configModalOverlay'),
+        config_textarea = document.getElementById('configTextarea'),
         container_element = document.getElementById('widget'),
         event_log = document.getElementById('eventLog'),
         load_button = document.getElementById('setButton');
 
       let eventCount = 0;
       const BUTTON_TEXT = {
-        default: '▶️ Carregar Widget',
-        loading: '⏳ Inicializando...'
+        default: 'Carregar Widget',
+        loading: 'Carregando...'
       };
+      const VERIFY_CONFIG_STORAGE_KEY = 'verify_custom_config';
+      const DEFAULT_VERIFY_CONFIG_TEMPLATE = JSON.stringify(
+        {
+          locale: 'pt-BR',
+          custom: {
+            backgroundColor: '',
+            textColor: '',
+            buttonTextColor: '',
+            buttonBackgroundColor: '',
+            ellipseBorderColor: ''
+          }
+        },
+        null,
+        2
+      );
+
+      const savedEnv = localStorage.getItem('verify_environment');
+      if (savedEnv) {
+        const match = Array.from(endpoint_select.options).find(o => o.value === savedEnv);
+        if (match) endpoint_select.value = savedEnv;
+      }
+
+      endpoint_select.addEventListener('change', function() {
+        localStorage.setItem('verify_environment', endpoint_select.value);
+      });
+
+      function parseConfigText(configText) {
+        const parsed = JSON.parse(configText);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('A configuração deve ser um objeto JSON');
+        }
+        return parsed;
+      }
+
+      function getStoredVerifyConfig() {
+        const raw = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+        if (!raw) return null;
+        return parseConfigText(raw);
+      }
+
+      function buildVerifyOptions(rawConfig) {
+        if (!rawConfig || typeof rawConfig !== 'object') return null;
+
+        const options = {};
+        if (typeof rawConfig.locale === 'string' && rawConfig.locale.trim() !== '') {
+          options.locale = rawConfig.locale.trim();
+        }
+
+        const customSource = rawConfig.custom;
+        const allowedCustomKeys = [
+          'backgroundColor',
+          'textColor',
+          'buttonTextColor',
+          'buttonBackgroundColor',
+          'ellipseBorderColor'
+        ];
+
+        if (customSource && typeof customSource === 'object' && !Array.isArray(customSource)) {
+          const custom = {};
+
+          for (const key of allowedCustomKeys) {
+            const value = customSource[key];
+            if (typeof value === 'string' && value.trim() !== '') {
+              custom[key] = value.trim();
+            }
+          }
+
+          if (Object.keys(custom).length > 0) {
+            options.custom = custom;
+          }
+        }
+
+        return Object.keys(options).length > 0 ? options : null;
+      }
+
+      function ensureValidStoredConfig() {
+        const raw = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+        if (!raw) return;
+
+        try {
+          parseConfigText(raw);
+        } catch (error) {
+          localStorage.setItem(VERIFY_CONFIG_STORAGE_KEY, DEFAULT_VERIFY_CONFIG_TEMPLATE);
+        }
+      }
+
+      function openConfigModal() {
+        config_textarea.value = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY) || DEFAULT_VERIFY_CONFIG_TEMPLATE;
+        config_modal_overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        config_textarea.focus();
+      }
+
+      function hasUnsavedChanges() {
+        const stored = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY) || DEFAULT_VERIFY_CONFIG_TEMPLATE;
+        return config_textarea.value.trim() !== stored.trim();
+      }
+
+      function closeConfigModal(forceClose = false) {
+        if (!forceClose && hasUnsavedChanges()) {
+          const confirmed = window.confirm('Você tem alterações não salvas. Deseja descartar?');
+          if (!confirmed) return;
+        }
+        config_modal_overlay.style.display = 'none';
+        document.body.style.overflow = modal_overlay.style.display === 'flex' ? 'hidden' : 'auto';
+      }
+
+      function resetConfigDraft() {
+        config_textarea.value = DEFAULT_VERIFY_CONFIG_TEMPLATE;
+      }
+
+      function saveConfig() {
+        try {
+          const parsed = parseConfigText(config_textarea.value);
+          localStorage.setItem(VERIFY_CONFIG_STORAGE_KEY, JSON.stringify(parsed, null, 2));
+          closeConfigModal(true);
+          return true;
+        } catch (error) {
+          alert(`JSON inválido: ${error.message}`);
+          return false;
+        }
+      }
+
+      ensureValidStoredConfig();
 
       function setButtonLoading(isLoading) {
         if (isLoading) {
@@ -128,7 +266,111 @@
         return now.toLocaleTimeString('pt-BR', { hour12: false });
       }
 
+      function decodeJwt(token) {
+        try {
+          const parts = token.split('.');
+          if (parts.length !== 3) return null;
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          return { header: JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/'))), payload };
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function isJwt(value) {
+        return typeof value === 'string' && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.trim());
+      }
+
+      function findJwtValues(data) {
+        const tokens = [];
+        if (isJwt(data)) {
+          tokens.push(data);
+        } else if (data && typeof data === 'object') {
+          for (const value of Object.values(data)) {
+            if (isJwt(value)) tokens.push(value);
+          }
+        }
+        return tokens;
+      }
+
+      function createJwtDecode(token) {
+        const decoded = decodeJwt(token);
+        if (!decoded) return null;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'jwt-preview';
+
+        const toggle = document.createElement('button');
+        toggle.className = 'button small secondary jwt-toggle';
+        toggle.textContent = 'Decodificar JWT';
+        wrapper.appendChild(toggle);
+
+        const details = document.createElement('div');
+        details.className = 'jwt-details';
+        details.style.display = 'none';
+
+        const headerSection = document.createElement('div');
+        headerSection.className = 'jwt-section';
+        headerSection.innerHTML = '<span class="jwt-label">Header</span>';
+        const headerValue = document.createElement('pre');
+        headerValue.className = 'jwt-payload';
+        headerValue.textContent = JSON.stringify(decoded.header, null, 2);
+        headerSection.appendChild(headerValue);
+        details.appendChild(headerSection);
+
+        const payloadSection = document.createElement('div');
+        payloadSection.className = 'jwt-section';
+        payloadSection.innerHTML = '<span class="jwt-label">Payload</span>';
+        const payloadValue = document.createElement('pre');
+        payloadValue.className = 'jwt-payload';
+        payloadValue.textContent = JSON.stringify(decoded.payload, null, 2);
+        payloadSection.appendChild(payloadValue);
+        details.appendChild(payloadSection);
+
+        toggle.addEventListener('click', function() {
+          const isOpen = details.style.display !== 'none';
+          details.style.display = isOpen ? 'none' : 'block';
+          toggle.textContent = isOpen ? 'Decodificar JWT' : 'Recolher JWT';
+        });
+
+        wrapper.appendChild(details);
+        return wrapper;
+      }
+
+      const toast_container = document.getElementById('toastContainer');
+      const MAX_TOASTS = 5;
+      const TOAST_DURATION = 4000;
+
+      function showToast(eventName, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'toast-name';
+        nameSpan.textContent = eventName;
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'toast-time';
+        timeSpan.textContent = formatTime();
+
+        toast.appendChild(nameSpan);
+        toast.appendChild(timeSpan);
+        toast_container.appendChild(toast);
+
+        while (toast_container.children.length > MAX_TOASTS) {
+          toast_container.removeChild(toast_container.firstChild);
+        }
+
+        setTimeout(function() {
+          toast.classList.add('toast-out');
+          toast.addEventListener('animationend', function() {
+            toast.remove();
+          });
+        }, TOAST_DURATION);
+      }
+
       function logEvent(eventName, eventData, type = 'info') {
+        showToast(eventName, type);
         eventCount++;
         
         const eventItem = document.createElement('div');
@@ -150,6 +392,12 @@
           dataDiv.className = 'event-data';
           dataDiv.textContent = JSON.stringify(eventData, null, 2);
           eventItem.appendChild(dataDiv);
+
+          const jwtTokens = findJwtValues(eventData);
+          for (const token of jwtTokens) {
+            const jwtDecode = createJwtDecode(token);
+            if (jwtDecode) eventItem.appendChild(jwtDecode);
+          }
         }
         
         const placeholder = event_log.querySelector('.info');
@@ -192,53 +440,60 @@
           transaction.unmount();
         }
         modal_overlay.style.display = 'none';
-        modal_loading.style.display = 'flex';
-        container_element.style.display = 'none';
         document.body.style.overflow = 'auto';
         updateStatus('Não Carregado', 'info');
       }
 
       document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && config_modal_overlay.style.display === 'flex') {
+          closeConfigModal();
+          return;
+        }
+
         if (e.key === 'Escape' && modal_overlay.style.display === 'flex') {
           closeModal();
         }
       });
 
       function setWidget() {
-        let transaction_key = transaction_key_element.value;
-        let endpoint = endpoint_select.value;
+        const transactionKey = transaction_key_element.value;
+        const widgetUrl = endpoint_select.value;
 
-        if (!transaction_key || transaction_key.trim() === '') {
-          alert('Por favor, insira uma chave de sessão de autenticação');
-          logEvent('Erro de Validação', { message: 'Chave de sessão é obrigatória' }, 'error');
+        if (!transactionKey || transactionKey.trim() === '') {
+          alert('Por favor, insira a chave da transação');
           return;
         }
 
         try {
           setButtonLoading(true);
-          updateStatus('Inicializando...', 'loading');
-          logEvent('Inicialização da Verificação', {
-            key: transaction_key.substring(0, 20) + '...',
-            endpoint: endpoint
-          }, 'info');
+
+          let verifyOptions = null;
+          const rawStoredConfig = localStorage.getItem(VERIFY_CONFIG_STORAGE_KEY);
+          if (rawStoredConfig) {
+            try {
+              const storedConfig = getStoredVerifyConfig();
+              verifyOptions = buildVerifyOptions(storedConfig);
+            } catch (configError) {
+              setButtonLoading(false);
+              alert(`JSON inválido na configuração: ${configError.message}`);
+              openConfigModal();
+              return;
+            }
+          }
 
           if (transaction) {
             transaction.unmount();
-            logEvent('Verificação Anterior Removida', null, 'info');
           }
 
-          transaction = new Verify(transaction_key);
-          transaction.endpoint = endpoint;
+          transaction = verifyOptions ? new Verify(transactionKey, verifyOptions) : new Verify(transactionKey);
+          transaction.endpoint = widgetUrl;
+
+          openModal();
 
           transaction.on('loaded', function(event) {
             debugEvent({ name: 'loaded', data: event }, 'success');
             setButtonLoading(false);
-            updateStatus('Carregado - Abrindo Modal', 'success');
-
-            openModal();
-            modal_loading.style.display = 'none';
-            container_element.style.display = 'block';
-            updateStatus('Modal Aberto', 'success');
+            updateStatus('Carregado', 'success');
           });
 
           transaction.on('success', function(event) {
@@ -250,6 +505,12 @@
           transaction.on('failed', function(event) {
             debugEvent({ name: 'failed', data: event }, 'failed');
             updateStatus('Falha no liveness', 'failed');
+            closeModal();
+          });
+
+          transaction.on('finished', function(event) {
+            debugEvent({ name: 'finished', data: event }, 'info');
+            updateStatus('Finalizado', 'info');
             closeModal();
           });
 
@@ -269,15 +530,19 @@
           console.error('Erro:', error);
           setButtonLoading(false);
           updateStatus('Erro', 'error');
-          logEvent('Erro ao Montar', { error: error.message }, 'error');
-          return;
+          logEvent('Erro', { message: error.message }, 'error');
         }
-
       }
 
       function removeWidget() {
         closeModal();
       }
+
+      config_modal_overlay.addEventListener('click', function(event) {
+        if (event.target === config_modal_overlay) {
+          closeConfigModal();
+        }
+      });
     </script>
   </body>
 </html>
