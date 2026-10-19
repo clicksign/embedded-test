@@ -1,3 +1,5 @@
+const INTERNAL_STAGING_ENVS = [2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 17, 20, 22, 23, 27];
+
 class noWidget {
   #origin = window.location.hostname;
   #baseUrl;
@@ -15,7 +17,7 @@ class noWidget {
       subDomain = 'app';
     } else if (/staging\d+/.test(env)) {
       subDomain = env.match(/\d+/)[0];
-      baseDomain = '.clicksign.dev';
+      baseDomain = INTERNAL_STAGING_ENVS.includes(Number(subDomain)) ? '.internal.clicksign.dev' : '.clicksign.dev';
     }
 
     this.#baseUrl = `https://${subDomain}${baseDomain}/notarial/embedded_signature/signatures/${uuid}`;

@@ -65,11 +65,15 @@
         container_element = document.getElementById('widget');
         loading_element = document.getElementById('loading');
 
+      const INTERNAL_STAGING_ENVS = [2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 17, 20, 22, 23, 27];
+
       window.onload = function() {
         for (let index = 1; index <= ENVIRONMENTS_COUNT; index++) {
           let option = document.createElement('option');
           option.text = `Staging ${index}`;
-          option.value = `https://${index}.clicksign.dev`;
+          option.value = INTERNAL_STAGING_ENVS.includes(index)
+            ? `https://${index}.internal.clicksign.dev`
+            : `https://${index}.clicksign.dev`;
           environment_element.appendChild(option);
         }
       }
