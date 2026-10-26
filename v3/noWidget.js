@@ -1,4 +1,4 @@
-const INTERNAL_STAGING_ENVS = [2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 17, 20, 22, 23, 27];
+const INTERNAL_STAGING_ENVS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 20, 21, 22, 23, 27];
 
 class noWidget {
   #origin = window.location.hostname;
